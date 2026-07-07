@@ -84,7 +84,7 @@ streamlit run app/main.py
 
 - [x] Phase 1 — Environment setup & project skeleton
 - [x] Phase 2 — MySQL schema design
-- [ ] Phase 3 — Database connection & repository layer
+- [x] Phase 3 — Database connection & repository layer
 - [ ] Phase 4 — Authentication system
 - [ ] Phase 5 — Patient module
 - [ ] Phase 6 — ML training pipeline & risk engine
