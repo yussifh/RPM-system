@@ -70,8 +70,10 @@ cp .env.example .env
 ### 4. Set up the database
 ```bash
 mysql -u root -p < database/schema.sql
+
+# Optional: load sample dev/demo data
+mysql -u root -p rpm_system < database/seed_data.sql
 ```
-*(schema.sql will be added in Phase 2)*
 
 ### 5. Run the application
 ```bash
@@ -81,7 +83,7 @@ streamlit run app/main.py
 ## Development Status
 
 - [x] Phase 1 — Environment setup & project skeleton
-- [ ] Phase 2 — MySQL schema design
+- [x] Phase 2 — MySQL schema design
 - [ ] Phase 3 — Database connection & repository layer
 - [ ] Phase 4 — Authentication system
 - [ ] Phase 5 — Patient module
