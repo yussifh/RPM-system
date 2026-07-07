@@ -1,0 +1,36 @@
+# ==============================================================
+# AI-Integrated Remote Patient Monitoring System
+# Python Dependencies (pinned for reproducibility)
+# ==============================================================
+
+# --- Frontend / Dashboard ---
+streamlit==1.38.0
+
+# --- Backend / Core ---
+python-dotenv==1.0.1
+
+# --- Database ---
+mysql-connector-python==9.0.0
+SQLAlchemy==2.0.34
+
+# --- Machine Learning ---
+scikit-learn==1.5.1
+pandas==2.2.2
+numpy==1.26.4
+joblib==1.4.2
+
+# --- Data Visualization ---
+plotly==5.23.0
+
+# --- Authentication & Security ---
+bcrypt==4.2.0
+streamlit-authenticator==0.3.3
+PyJWT==2.9.0
+
+# --- Utilities ---
+python-dateutil==2.9.0
+email-validator==2.2.0
+
+# --- Testing (dev) ---
+pytest==8.3.2
+pytest-cov==5.0.0
