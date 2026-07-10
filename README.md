@@ -91,7 +91,7 @@ streamlit run app/main.py
 - [x] Phase 2 — MySQL schema design
 - [x] Phase 3 — Database connection & repository layer
 - [x] Phase 4 — Authentication system
-- [ ] Phase 5 — Patient module
+- [x] Phase 5 — Patient module
 - [ ] Phase 6 — ML training pipeline & risk engine
 - [ ] Phase 7 — Doctor module
 - [ ] Phase 8 — Admin module
