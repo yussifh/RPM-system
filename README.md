@@ -75,7 +75,12 @@ mysql -u root -p < database/schema.sql
 mysql -u root -p rpm_system < database/seed_data.sql
 ```
 
-### 5. Run the application
+### 5. Create the first administrator account
+```bash
+python scripts/bootstrap_admin.py
+```
+
+### 6. Run the application
 ```bash
 streamlit run app/main.py
 ```
@@ -85,7 +90,7 @@ streamlit run app/main.py
 - [x] Phase 1 — Environment setup & project skeleton
 - [x] Phase 2 — MySQL schema design
 - [x] Phase 3 — Database connection & repository layer
-- [ ] Phase 4 — Authentication system
+- [x] Phase 4 — Authentication system
 - [ ] Phase 5 — Patient module
 - [ ] Phase 6 — ML training pipeline & risk engine
 - [ ] Phase 7 — Doctor module

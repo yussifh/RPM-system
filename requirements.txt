@@ -24,8 +24,6 @@ plotly==5.23.0
 
 # --- Authentication & Security ---
 bcrypt==4.2.0
-streamlit-authenticator==0.3.3
-PyJWT==2.9.0
 
 # --- Utilities ---
 python-dateutil==2.9.0
