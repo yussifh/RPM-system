@@ -1,0 +1,42 @@
+{
+  "disease": "hypertension",
+  "model_version": "hypertension_logistic_v1.0",
+  "algorithm": "logistic_regression",
+  "cv_recall_scores": {
+    "logistic_regression": 0.6341,
+    "random_forest": 0.2513
+  },
+  "test_metrics": {
+    "accuracy": 0.655,
+    "precision": 0.2468,
+    "recall": 0.6333,
+    "f1_score": 0.3551,
+    "roc_auc": 0.7081,
+    "confusion_matrix": {
+      "tn": 336,
+      "fp": 174,
+      "fn": 33,
+      "tp": 57
+    }
+  },
+  "numeric_features": [
+    "age",
+    "cigsPerDay",
+    "totChol",
+    "sysBP",
+    "diaBP",
+    "BMI",
+    "heartRate",
+    "glucose"
+  ],
+  "categorical_features": [
+    "sex",
+    "currentSmoker",
+    "BPMeds",
+    "prevalentStroke",
+    "diabetes"
+  ],
+  "trained_at": "2026-07-11T00:13:31.312882+00:00",
+  "training_rows": 2400,
+  "test_rows": 600
+}

@@ -13,6 +13,7 @@ import streamlit as st
 
 from app.core.security import SessionManager
 from app.core.exceptions import ValidationError
+from app.services.monitoring_service import MonitoringService
 from app.services.vitals_service import VitalsService
 from app.database.repositories.patient_repository import PatientRepository
 from app.utils.visualizations import build_blood_pressure_chart, build_single_metric_chart
@@ -21,7 +22,8 @@ st.set_page_config(page_title="Patient Dashboard", page_icon="🧑‍⚕️", la
 
 user = SessionManager.require_role("patient")
 
-vitals_service = VitalsService()
+monitoring_service = MonitoringService()
+vitals_service = VitalsService()  # used for the read-only history tab
 patient_repo = PatientRepository()
 
 st.title("🧑‍⚕️ Patient Dashboard")
@@ -66,7 +68,7 @@ with submit_tab:
                 return None if v == 0 else v
 
             try:
-                record = vitals_service.submit_vitals(
+                result = monitoring_service.submit_vitals_and_assess(
                     patient_id=user["id"],
                     systolic_bp=none_if_zero(systolic_bp),
                     diastolic_bp=none_if_zero(diastolic_bp),
@@ -78,7 +80,28 @@ with submit_tab:
                     symptoms=symptoms,
                     notes=notes,
                 )
-                st.success(f"Reading submitted successfully at {record.recorded_at}.")
+                st.success(f"Reading submitted successfully at {result['vitals'].recorded_at}.")
+
+                if result["predictions"]:
+                    st.subheader("AI Risk Feedback")
+                    st.caption(
+                        "Based on this reading and your medical history. "
+                        "This is a decision-support estimate, not a diagnosis — "
+                        "always follow your doctor's guidance."
+                    )
+                    risk_colors = {"low": "🟢", "medium": "🟡", "high": "🟠", "critical": "🔴"}
+                    for pred in result["predictions"]:
+                        icon = risk_colors.get(pred["risk_level"], "⚪")
+                        st.write(
+                            f"{icon} **{pred['disease_type'].title()}**: "
+                            f"{pred['risk_level'].upper()} risk "
+                            f"({pred['risk_score']:.0%} probability)"
+                        )
+                        if pred["alert_created"]:
+                            st.warning(
+                                f"Your doctor has been alerted about this {pred['disease_type']} "
+                                f"reading and will review it soon."
+                            )
             except ValidationError as e:
                 st.error(str(e))
 

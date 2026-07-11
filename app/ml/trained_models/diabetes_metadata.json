@@ -1,0 +1,36 @@
+{
+  "disease": "diabetes",
+  "model_version": "diabetes_logistic_v1.0",
+  "algorithm": "logistic_regression",
+  "cv_recall_scores": {
+    "logistic_regression": 0.6455,
+    "random_forest": 0.4764
+  },
+  "test_metrics": {
+    "accuracy": 0.68,
+    "precision": 0.5298,
+    "recall": 0.6449,
+    "f1_score": 0.5817,
+    "roc_auc": 0.7432,
+    "confusion_matrix": {
+      "tn": 183,
+      "fp": 79,
+      "fn": 49,
+      "tp": 89
+    }
+  },
+  "numeric_features": [
+    "Pregnancies",
+    "Glucose",
+    "BloodPressure",
+    "SkinThickness",
+    "Insulin",
+    "BMI",
+    "DiabetesPedigreeFunction",
+    "Age"
+  ],
+  "categorical_features": [],
+  "trained_at": "2026-07-11T00:13:28.473614+00:00",
+  "training_rows": 1600,
+  "test_rows": 400
+}

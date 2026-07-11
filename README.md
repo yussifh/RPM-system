@@ -85,6 +85,34 @@ python scripts/bootstrap_admin.py
 streamlit run app/main.py
 ```
 
+## Machine Learning
+
+Three models (stroke, diabetes, hypertension) are trained via:
+```bash
+python ml_training/notebooks_or_scripts/generate_synthetic_datasets.py  # dev/test data only
+python ml_training/train_models.py
+```
+
+**⚠️ Important — read before final submission:** this development environment
+has no internet access, so the datasets currently in `ml_training/datasets/`
+are **synthetically generated** to match the exact column schemas of real
+public datasets (see comments in `generate_synthetic_datasets.py` for exact
+source links). For your actual submission, download the real datasets and
+replace the CSVs with the same filenames — `train_models.py` works unchanged.
+
+## Limitations
+
+- **Feature coverage mismatch**: the standard stroke/diabetes/hypertension
+  datasets use features this system doesn't currently collect (BMI requires
+  height; smoking status, cholesterol, marital status are not gathered at
+  registration or vitals submission). Missing features are imputed with the
+  training set's median/mode at inference time — a standard technique, but
+  one that reduces prediction reliability compared to a full clinical
+  workup. **Future work**: collect height, smoking status, and family
+  history at patient registration to close this gap.
+- **Synthetic training data**: see the ML Training section above.
+- Not a certified medical device — see Disclaimer below.
+
 ## Development Status
 
 - [x] Phase 1 — Environment setup & project skeleton
@@ -92,7 +120,7 @@ streamlit run app/main.py
 - [x] Phase 3 — Database connection & repository layer
 - [x] Phase 4 — Authentication system
 - [x] Phase 5 — Patient module
-- [ ] Phase 6 — ML training pipeline & risk engine
+- [x] Phase 6 — ML training pipeline & risk engine
 - [ ] Phase 7 — Doctor module
 - [ ] Phase 8 — Admin module
 - [ ] Phase 9 — Alerts & recommendation engine
