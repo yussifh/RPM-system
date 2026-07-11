@@ -17,7 +17,6 @@ available from our vitals collection. See README "Limitations" section.
 
 import json
 import os
-from datetime import date
 from typing import Optional
 
 import joblib
@@ -26,17 +25,11 @@ import pandas as pd
 from app.core.config import Config
 from app.core.exceptions import ModelNotLoadedError, PredictionError
 from app.database.models import Patient, VitalsRecord
+from app.utils.date_utils import calculate_age
 
 MODELS_DIR = os.path.join(os.path.dirname(__file__), "trained_models")
 
 _SUPPORTED_DISEASES = ("stroke", "diabetes", "hypertension")
-
-
-def _calculate_age(date_of_birth: date) -> int:
-    today = date.today()
-    return today.year - date_of_birth.year - (
-        (today.month, today.day) < (date_of_birth.month, date_of_birth.day)
-    )
 
 
 class RiskEngine:
@@ -73,7 +66,7 @@ class RiskEngine:
         expected column schema. Fields we don't collect are set to None
         and imputed by the model's pipeline at inference time.
         """
-        age = _calculate_age(patient.date_of_birth)
+        age = calculate_age(patient.date_of_birth)
         has_condition = lambda name: name in patient.chronic_conditions  # noqa: E731
 
         systolic = vitals.systolic_bp if vitals else None

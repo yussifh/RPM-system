@@ -121,7 +121,7 @@ replace the CSVs with the same filenames — `train_models.py` works unchanged.
 - [x] Phase 4 — Authentication system
 - [x] Phase 5 — Patient module
 - [x] Phase 6 — ML training pipeline & risk engine
-- [ ] Phase 7 — Doctor module
+- [x] Phase 7 — Doctor module
 - [ ] Phase 8 — Admin module
 - [ ] Phase 9 — Alerts & recommendation engine
 - [ ] Phase 10 — Visualization dashboards
