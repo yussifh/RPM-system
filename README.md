@@ -122,7 +122,7 @@ replace the CSVs with the same filenames — `train_models.py` works unchanged.
 - [x] Phase 5 — Patient module
 - [x] Phase 6 — ML training pipeline & risk engine
 - [x] Phase 7 — Doctor module
-- [ ] Phase 8 — Admin module
+- [x] Phase 8 — Admin module
 - [ ] Phase 9 — Alerts & recommendation engine
 - [ ] Phase 10 — Visualization dashboards
 - [ ] Phase 11 — Testing, polish, documentation

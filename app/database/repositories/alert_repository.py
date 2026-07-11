@@ -88,3 +88,18 @@ class AlertRepository(BaseRepository):
             (doctor_id,),
         )
         return {row["severity"]: row["count"] for row in rows}
+
+    def count_open_by_severity_all(self) -> dict[str, int]:
+        """
+        System-wide equivalent of count_open_by_severity(), for the Admin
+        overview dashboard — not scoped to any single doctor's patients.
+        """
+        rows = self.execute_query(
+            """
+            SELECT severity, COUNT(*) AS count
+            FROM alerts
+            WHERE status = 'open'
+            GROUP BY severity
+            """
+        )
+        return {row["severity"]: row["count"] for row in rows}
