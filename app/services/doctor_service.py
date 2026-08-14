@@ -19,6 +19,7 @@ from app.database.repositories.patient_repository import PatientRepository
 from app.database.repositories.vitals_repository import VitalsRepository
 from app.database.repositories.prediction_repository import PredictionRepository
 from app.database.repositories.clinical_note_repository import ClinicalNoteRepository
+from app.database.repositories.medication_repository import MedicationRepository
 from app.core.exceptions import ValidationError
 from app.utils.date_utils import calculate_age
 
@@ -29,11 +30,13 @@ class DoctorService:
                  patient_repo: Optional[PatientRepository] = None,
                  vitals_repo: Optional[VitalsRepository] = None,
                  prediction_repo: Optional[PredictionRepository] = None,
-                 note_repo: Optional[ClinicalNoteRepository] = None):
+                 note_repo: Optional[ClinicalNoteRepository] = None,
+                 medication_repo: Optional[MedicationRepository] = None):
         self.patient_repo = patient_repo or PatientRepository()
         self.vitals_repo = vitals_repo or VitalsRepository()
         self.prediction_repo = prediction_repo or PredictionRepository()
         self.note_repo = note_repo or ClinicalNoteRepository()
+        self.medication_repo = medication_repo or MedicationRepository()
 
     def get_assigned_patients(self, doctor_id: int) -> list[Patient]:
         return self.patient_repo.list_by_doctor(doctor_id)
@@ -63,3 +66,14 @@ class DoctorService:
         if not note_text or not note_text.strip():
             raise ValidationError("Clinical note cannot be empty.")
         return self.note_repo.create(doctor_id, patient_id, note_text.strip())
+
+    def get_patient_medications(self, patient_id: int,
+                                 active_only: bool = True) -> list:
+        return self.medication_repo.list_for_patient(patient_id, active_only=active_only)
+
+    def get_patient_medication_adherence(self, patient_id: int,
+                                          days: int = 30) -> float:
+        return self.medication_repo.get_adherence_rate(patient_id, days=days)
+
+    def get_patient_medication_logs(self, patient_id: int) -> list:
+        return self.medication_repo.get_today_logs(patient_id)

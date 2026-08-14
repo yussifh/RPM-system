@@ -71,3 +71,9 @@ class PatientRepository(BaseRepository):
             "UPDATE patients SET chronic_conditions = %s WHERE user_id = %s",
             (conditions_csv, patient_user_id),
         )
+
+    def update_emergency_contact(self, patient_user_id: int, emergency_contact: str = None) -> None:
+        self.execute_write(
+            "UPDATE patients SET emergency_contact = %s WHERE user_id = %s",
+            (emergency_contact, patient_user_id),
+        )

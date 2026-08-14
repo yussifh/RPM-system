@@ -86,3 +86,36 @@ class VitalsRepository(BaseRepository):
             (patient_id, start_date, end_date),
         )
         return [VitalsRecord.from_row(r) for r in rows]
+
+    def get_all_with_patients(self, limit: int = 500) -> list[dict]:
+        """Admin report: all vitals records with patient names."""
+        return self.execute_query(
+            """
+            SELECT v.*, u.full_name AS patient_name, u.email AS patient_email,
+                   p.gender, p.chronic_conditions
+            FROM vitals_records v
+            JOIN users u ON u.id = v.patient_id
+            JOIN patients p ON p.user_id = v.patient_id
+            ORDER BY v.recorded_at DESC
+            LIMIT %s
+            """,
+            (limit,),
+        )
+
+    def get_summary_stats(self) -> dict:
+        """Admin report: aggregate vitals statistics."""
+        row = self.execute_one(
+            """
+            SELECT
+                COUNT(*) AS total_readings,
+                COUNT(DISTINCT patient_id) AS patients_with_readings,
+                ROUND(AVG(systolic_bp),1) AS avg_systolic,
+                ROUND(AVG(diastolic_bp),1) AS avg_diastolic,
+                ROUND(AVG(heart_rate),1) AS avg_heart_rate,
+                ROUND(AVG(glucose_level),1) AS avg_glucose,
+                MIN(recorded_at) AS earliest_reading,
+                MAX(recorded_at) AS latest_reading
+            FROM vitals_records
+            """
+        )
+        return row or {}

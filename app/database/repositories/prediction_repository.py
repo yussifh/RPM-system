@@ -104,3 +104,33 @@ class PredictionRepository(BaseRepository):
             ORDER BY pr.risk_score DESC
         """
         return self.execute_query(sql, (doctor_id,))
+
+    def get_all_with_patients(self, limit: int = 500) -> list[dict]:
+        """Admin report: all predictions with patient names."""
+        return self.execute_query(
+            """
+            SELECT pr.*, u.full_name AS patient_name, u.email AS patient_email
+            FROM predictions pr
+            JOIN users u ON u.id = pr.patient_id
+            ORDER BY pr.predicted_at DESC
+            LIMIT %s
+            """,
+            (limit,),
+        )
+
+    def get_risk_distribution(self) -> dict:
+        """Admin report: count of patients by risk level per disease."""
+        rows = self.execute_query(
+            """
+            SELECT disease_type, risk_level, COUNT(DISTINCT patient_id) AS patient_count
+            FROM predictions pr1
+            WHERE predicted_at = (
+                SELECT MAX(predicted_at) FROM predictions pr2
+                WHERE pr2.patient_id = pr1.patient_id
+                  AND pr2.disease_type = pr1.disease_type
+            )
+            GROUP BY disease_type, risk_level
+            ORDER BY disease_type, risk_level
+            """
+        )
+        return rows

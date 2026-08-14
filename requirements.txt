@@ -25,6 +25,9 @@ plotly==5.23.0
 # --- Authentication & Security ---
 bcrypt==4.2.0
 
+# --- PDF Generation ---
+fpdf2==2.8.1
+
 # --- Utilities ---
 python-dateutil==2.9.0
 email-validator==2.2.0

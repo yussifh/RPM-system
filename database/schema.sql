@@ -19,7 +19,17 @@ CREATE DATABASE IF NOT EXISTS rpm_system
 USE rpm_system;
 
 -- Ensure clean re-runs during development (order matters: children first)
+DROP TABLE IF EXISTS active_sessions;
+DROP TABLE IF EXISTS doctor_schedules;
+DROP TABLE IF EXISTS patient_consents;
+DROP TABLE IF EXISTS emergency_notifications;
+DROP TABLE IF EXISTS password_reset_tokens;
 DROP TABLE IF EXISTS audit_logs;
+DROP TABLE IF EXISTS medication_logs;
+DROP TABLE IF EXISTS medications;
+DROP TABLE IF EXISTS messages;
+DROP TABLE IF EXISTS appointments;
+DROP TABLE IF EXISTS lifestyle_records;
 DROP TABLE IF EXISTS clinical_notes;
 DROP TABLE IF EXISTS alerts;
 DROP TABLE IF EXISTS predictions;
@@ -204,7 +214,56 @@ CREATE INDEX idx_notes_patient_time ON clinical_notes (patient_id, created_at);
 
 
 -- ==============================================================
--- 8. AUDIT_LOGS  (independent tamper-evident action trail)
+-- 8. MEDICATIONS  (prescribed medications per patient)
+-- ==============================================================
+CREATE TABLE medications (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id      INT             NOT NULL,
+    name            VARCHAR(150)    NOT NULL,
+    dosage          VARCHAR(50)     NOT NULL,
+    frequency       VARCHAR(50)     NOT NULL,
+    route           VARCHAR(30)     NOT NULL DEFAULT 'oral',
+    start_date      DATE            NOT NULL,
+    end_date        DATE            NULL,
+    prescribed_by   VARCHAR(100)    NULL,
+    notes           TEXT            NULL,
+    is_active       BOOLEAN         NOT NULL DEFAULT TRUE,
+    created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                         ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_medications_patient
+        FOREIGN KEY (patient_id) REFERENCES patients(user_id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_medications_patient_active ON medications (patient_id, is_active);
+
+
+-- ==============================================================
+-- 9. MEDICATION_LOGS  (daily intake tracking)
+-- ==============================================================
+CREATE TABLE medication_logs (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    medication_id   INT             NOT NULL,
+    patient_id      INT             NOT NULL,
+    taken_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    taken           BOOLEAN         NOT NULL DEFAULT TRUE,
+    notes           TEXT            NULL,
+
+    CONSTRAINT fk_medlogs_medication
+        FOREIGN KEY (medication_id) REFERENCES medications(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_medlogs_patient
+        FOREIGN KEY (patient_id) REFERENCES patients(user_id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_medlogs_patient_date ON medication_logs (patient_id, taken_at);
+
+
+-- ==============================================================
+-- 10. AUDIT_LOGS  (independent tamper-evident action trail)
 -- ==============================================================
 CREATE TABLE audit_logs (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -221,3 +280,274 @@ CREATE TABLE audit_logs (
 
 CREATE INDEX idx_audit_user_time ON audit_logs (user_id, created_at);
 CREATE INDEX idx_audit_action ON audit_logs (action);
+
+
+-- ==============================================================
+-- 11. APPOINTMENTS  (doctor-patient scheduled visits)
+-- ==============================================================
+CREATE TABLE appointments (
+    id                  INT AUTO_INCREMENT PRIMARY KEY,
+    doctor_id           INT             NOT NULL,
+    patient_id          INT             NOT NULL,
+    appointment_date    DATE            NOT NULL,
+    appointment_time    TIME            NOT NULL,
+    location            VARCHAR(150)    NOT NULL DEFAULT 'Hospital Clinic',
+    reason              TEXT            NULL,
+    severity_level      VARCHAR(20)     NOT NULL DEFAULT 'moderate',
+    status              VARCHAR(20)     NOT NULL DEFAULT 'scheduled',
+    doctor_notes        TEXT            NULL,
+    patient_notes       TEXT            NULL,
+    created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                             ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_appt_doctor
+        FOREIGN KEY (doctor_id) REFERENCES doctors(user_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_appt_patient
+        FOREIGN KEY (patient_id) REFERENCES patients(user_id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_appt_doctor_date ON appointments (doctor_id, appointment_date);
+CREATE INDEX idx_appt_patient_date ON appointments (patient_id, appointment_date);
+
+
+-- ==============================================================
+-- 12. LIFESTYLE_RECORDS  (BMI, smoking, cholesterol, exercise)
+-- ==============================================================
+CREATE TABLE lifestyle_records (
+    id                      INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id              INT             NOT NULL,
+    recorded_at             DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    height_cm               DECIMAL(5,1)    NULL,
+    weight_kg               DECIMAL(5,1)    NULL,
+    bmi                     DECIMAL(4,1)    NULL,
+    smoking_status          VARCHAR(30)     NULL,
+    cigarettes_per_day      INT             NULL,
+    alcohol_units_week      INT             NULL,
+    total_cholesterol       DECIMAL(5,1)    NULL,
+    hdl_cholesterol         DECIMAL(5,1)    NULL,
+    ldl_cholesterol         DECIMAL(5,1)    NULL,
+    exercise_minutes_week   INT             NULL,
+    activity_level          VARCHAR(20)     NULL,
+    diet_type               VARCHAR(50)     NULL,
+    notes                   TEXT            NULL,
+
+    CONSTRAINT fk_lifestyle_patient
+        FOREIGN KEY (patient_id) REFERENCES patients(user_id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_lifestyle_patient_time ON lifestyle_records (patient_id, recorded_at);
+
+
+-- ==============================================================
+-- 13. MESSAGES  (patient-doctor communication)
+-- ==============================================================
+CREATE TABLE messages (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    sender_id       INT             NOT NULL,
+    receiver_id     INT             NOT NULL,
+    subject         VARCHAR(200)    NOT NULL,
+    body            TEXT            NOT NULL,
+    is_read         BOOLEAN         NOT NULL DEFAULT FALSE,
+    sent_at         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_msg_sender
+        FOREIGN KEY (sender_id) REFERENCES users(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_msg_receiver
+        FOREIGN KEY (receiver_id) REFERENCES users(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_msg_receiver_read ON messages (receiver_id, is_read);
+CREATE INDEX idx_msg_sender ON messages (sender_id);
+
+
+-- ==============================================================
+-- 14. PASSWORD_RESET_TOKENS  (OTP-based password reset)
+-- ==============================================================
+CREATE TABLE password_reset_tokens (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    user_id     INT             NOT NULL,
+    token       VARCHAR(64)     NOT NULL,
+    expires_at  DATETIME        NOT NULL,
+    used        BOOLEAN         NOT NULL DEFAULT FALSE,
+    created_at  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_prt_user
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        ON DELETE CASCADE,
+    CONSTRAINT uq_prt_token UNIQUE (token)
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_prt_user ON password_reset_tokens (user_id);
+
+
+-- ==============================================================
+-- 15. EMERGENCY_NOTIFICATIONS  (emergency contact alerts)
+-- ==============================================================
+CREATE TABLE emergency_notifications (
+    id                  INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id          INT             NOT NULL,
+    emergency_contact   VARCHAR(100)    NOT NULL,
+    severity            VARCHAR(20)     NOT NULL,
+    message             TEXT            NOT NULL,
+    vital_snapshot      TEXT            NULL,
+    notification_type   VARCHAR(30)     NOT NULL DEFAULT 'sms',
+    status              VARCHAR(20)     NOT NULL DEFAULT 'pending',
+    sent_at             DATETIME        NULL,
+    acknowledged_at     DATETIME        NULL,
+    created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_emerg_patient
+        FOREIGN KEY (patient_id) REFERENCES patients(user_id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_emerg_patient_time ON emergency_notifications (patient_id, created_at);
+CREATE INDEX idx_emerg_status ON emergency_notifications (status);
+
+
+-- ==============================================================
+-- 16. PATIENT_CONSENTS  (consent tracking for monitoring)
+-- ==============================================================
+CREATE TABLE patient_consents (
+    id                  INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id          INT             NOT NULL,
+    consent_type        VARCHAR(50)     NOT NULL DEFAULT 'monitoring',
+    consent_given       BOOLEAN         NOT NULL DEFAULT FALSE,
+    consent_text        TEXT            NULL,
+    ip_address          VARCHAR(45)     NULL,
+    created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                         ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_consent_patient
+        FOREIGN KEY (patient_id) REFERENCES patients(user_id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_consent_patient ON patient_consents (patient_id, consent_type);
+
+
+-- ==============================================================
+-- 17. DOCTOR_SCHEDULES  (available booking hours)
+-- ==============================================================
+CREATE TABLE doctor_schedules (
+    id                  INT AUTO_INCREMENT PRIMARY KEY,
+    doctor_id           INT             NOT NULL,
+    day_of_week         TINYINT         NOT NULL COMMENT '0=Monday, 6=Sunday',
+    start_time          TIME            NOT NULL,
+    end_time            TIME            NOT NULL,
+    slot_duration_min   INT             NOT NULL DEFAULT 30,
+    is_active           BOOLEAN         NOT NULL DEFAULT TRUE,
+    created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_schedule_doctor
+        FOREIGN KEY (doctor_id) REFERENCES doctors(user_id)
+        ON DELETE CASCADE,
+    CONSTRAINT chk_day_range CHECK (day_of_week BETWEEN 0 AND 6),
+    CONSTRAINT chk_time_range CHECK (end_time > start_time)
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_schedule_doctor_day ON doctor_schedules (doctor_id, day_of_week);
+
+
+-- ==============================================================
+-- 18. ACTIVE_SESSIONS  (session tracking for management)
+-- ==============================================================
+CREATE TABLE active_sessions (
+    id                  INT AUTO_INCREMENT PRIMARY KEY,
+    user_id             INT             NOT NULL,
+    session_token       VARCHAR(128)    NOT NULL,
+    ip_address          VARCHAR(45)     NULL,
+    user_agent          VARCHAR(255)    NULL,
+    login_at            DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_activity       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    is_active           BOOLEAN         NOT NULL DEFAULT TRUE,
+
+    CONSTRAINT fk_session_user
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        ON DELETE CASCADE,
+    CONSTRAINT uq_session_token UNIQUE (session_token)
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_session_user ON active_sessions (user_id, is_active);
+
+
+-- ==============================================================
+-- 19. DOCTOR_RATINGS  (patient feedback after appointments)
+-- ==============================================================
+CREATE TABLE doctor_ratings (
+    id                  INT AUTO_INCREMENT PRIMARY KEY,
+    patient_user_id     INT             NOT NULL,
+    doctor_user_id      INT             NOT NULL,
+    appointment_id      INT             NULL,
+    rating              TINYINT         NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    comment             TEXT            NULL,
+    created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_rating_patient
+        FOREIGN KEY (patient_user_id) REFERENCES users(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_rating_doctor
+        FOREIGN KEY (doctor_user_id) REFERENCES users(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_rating_appointment
+        FOREIGN KEY (appointment_id) REFERENCES appointments(id)
+        ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_rating_doctor ON doctor_ratings (doctor_user_id);
+CREATE INDEX idx_rating_patient ON doctor_ratings (patient_user_id);
+
+-- ==============================================================
+-- 20. TELECONSULTATIONS  (video call sessions)
+-- ==============================================================
+CREATE TABLE teleconsultations (
+    id                  INT AUTO_INCREMENT PRIMARY KEY,
+    patient_user_id     INT             NOT NULL,
+    doctor_user_id      INT             NOT NULL,
+    appointment_id      INT             NULL,
+    status              ENUM('scheduled','in_progress','completed','cancelled')
+                                        NOT NULL DEFAULT 'scheduled',
+    room_id             VARCHAR(64)     NOT NULL,
+    started_at          DATETIME        NULL,
+    ended_at            DATETIME        NULL,
+    notes               TEXT            NULL,
+    created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_tele_patient
+        FOREIGN KEY (patient_user_id) REFERENCES users(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_tele_doctor
+        FOREIGN KEY (doctor_user_id) REFERENCES users(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_tele_appointment
+        FOREIGN KEY (appointment_id) REFERENCES appointments(id)
+        ON DELETE SET NULL,
+    CONSTRAINT uq_tele_room UNIQUE (room_id)
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_tele_doctor ON teleconsultations (doctor_user_id);
+CREATE INDEX idx_tele_patient ON teleconsultations (patient_user_id);
+
+-- ==============================================================
+-- 21. SYSTEM_SETTINGS  (admin-configurable key-value pairs)
+-- ==============================================================
+CREATE TABLE system_settings (
+    id                  INT AUTO_INCREMENT PRIMARY KEY,
+    setting_key         VARCHAR(100)    NOT NULL,
+    setting_value       TEXT            NULL,
+    description         VARCHAR(255)    NULL,
+    updated_by          INT             NULL,
+    updated_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_settings_user
+        FOREIGN KEY (updated_by) REFERENCES users(id)
+        ON DELETE SET NULL,
+    CONSTRAINT uq_setting_key UNIQUE (setting_key)
+) ENGINE=InnoDB;

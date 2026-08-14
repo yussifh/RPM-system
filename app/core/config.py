@@ -67,6 +67,18 @@ class RiskThresholds:
     critical: float = float(_get_env("RISK_THRESHOLD_CRITICAL", "0.9"))
 
 
+@dataclass(frozen=True)
+class EmailConfig:
+    """Email/SMTP notification settings."""
+    smtp_host: str = _get_env("SMTP_HOST", "")
+    smtp_port: int = int(_get_env("SMTP_PORT", "587"))
+    smtp_user: str = _get_env("SMTP_USER", "")
+    smtp_password: str = _get_env("SMTP_PASSWORD", "")
+    from_email: str = _get_env("SMTP_FROM_EMAIL", "")
+    from_name: str = _get_env("SMTP_FROM_NAME", "RPM System")
+    enabled: bool = bool(_get_env("SMTP_HOST", ""))
+
+
 class Config:
     """
     Top-level application configuration.
@@ -74,11 +86,13 @@ class Config:
         from app.core.config import Config
         Config.DB.host
         Config.SECURITY.secret_key
+        Config.EMAIL.enabled
     """
     APP_ENV: str = _get_env("APP_ENV", "development")
     DB: DatabaseConfig = DatabaseConfig()
     SECURITY: SecurityConfig = SecurityConfig()
     RISK: RiskThresholds = RiskThresholds()
+    EMAIL: EmailConfig = EmailConfig()
 
     @classmethod
     def is_production(cls) -> bool:

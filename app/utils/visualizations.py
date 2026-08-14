@@ -31,9 +31,9 @@ def build_blood_pressure_chart(records: list[VitalsRecord]) -> go.Figure:
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=timestamps, y=systolic, mode="lines+markers",
-                              name="Systolic", line=dict(color="#d62728")))
+                              name="Systolic", line=dict(color="#C73E3A")))
     fig.add_trace(go.Scatter(x=timestamps, y=diastolic, mode="lines+markers",
-                              name="Diastolic", line=dict(color="#1f77b4")))
+                              name="Diastolic", line=dict(color="#2A6A9B")))
 
     # Reference lines for standard hypertension thresholds (AHA guidance)
     fig.add_hline(y=120, line_dash="dot", line_color="green",
@@ -54,7 +54,7 @@ def build_blood_pressure_chart(records: list[VitalsRecord]) -> go.Figure:
 def build_single_metric_chart(records: list[VitalsRecord], field: str,
                                title: str, unit: str,
                                normal_range: Optional[tuple[float, float]] = None,
-                               color: str = "#2ca02c") -> go.Figure:
+                               color: str = "#0E7A5C") -> go.Figure:
     """
     Generic single-line trend chart for any one numeric vitals field
     (heart_rate, glucose_level, weight_kg, temperature_c, oxygen_saturation).

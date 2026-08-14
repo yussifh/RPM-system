@@ -1,0 +1,47 @@
+[server]
+headless = true
+
+[theme]
+base = "light"
+
+[theme.light]
+primaryColor = "#0E7A5C"
+backgroundColor = "#F1F5F3"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#16242B"
+linkColor = "#0E7A5C"
+borderColor = "#DCE5E1"
+baseRadius = "12px"
+buttonRadius = "8px"
+showWidgetBorder = true
+
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+headingFont = "Space Grotesk:https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+codeFont = "'JetBrains Mono':https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap"
+
+[theme.light.sidebar]
+backgroundColor = "#12312E"
+secondaryBackgroundColor = "#173B37"
+textColor = "#E9F1EE"
+borderColor = "#1E4A45"
+
+[theme.dark]
+primaryColor = "#2FC495"
+backgroundColor = "#0B1214"
+secondaryBackgroundColor = "#131D20"
+textColor = "#E6EDEA"
+linkColor = "#35D3B4"
+borderColor = "#24363A"
+baseRadius = "12px"
+buttonRadius = "8px"
+showWidgetBorder = true
+
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+headingFont = "Space Grotesk:https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+codeFont = "'JetBrains Mono':https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap"
+
+[theme.dark.sidebar]
+backgroundColor = "#0E171A"
+secondaryBackgroundColor = "#142023"
+textColor = "#E6EDEA"
+borderColor = "#24363A"

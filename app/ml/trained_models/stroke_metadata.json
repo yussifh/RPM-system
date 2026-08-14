@@ -1,23 +1,13 @@
 {
   "disease": "stroke",
-  "model_version": "stroke_logistic_v1.0",
+  "model_version": "stroke_logistic_v2.0",
   "algorithm": "logistic_regression",
-  "cv_recall_scores": {
-    "logistic_regression": 0.8413,
-    "random_forest": 0.5601
-  },
   "test_metrics": {
-    "accuracy": 0.8,
-    "precision": 0.1453,
-    "recall": 0.7879,
-    "f1_score": 0.2453,
-    "roc_auc": 0.886,
-    "confusion_matrix": {
-      "tn": 614,
-      "fp": 153,
-      "fn": 7,
-      "tp": 26
-    }
+    "accuracy": 0.765,
+    "precision": 0.5833,
+    "recall": 0.1768,
+    "f1_score": 0.2713,
+    "roc_auc": 0.7409
   },
   "numeric_features": [
     "age",
@@ -33,7 +23,8 @@
     "Residence_type",
     "smoking_status"
   ],
-  "trained_at": "2026-07-11T00:13:26.125491+00:00",
+  "trained_at": "2026-07-26T21:42:50.256727+00:00",
   "training_rows": 3200,
-  "test_rows": 800
+  "test_rows": 800,
+  "sklearn_compatible": true
 }

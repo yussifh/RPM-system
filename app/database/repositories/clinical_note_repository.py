@@ -32,3 +32,21 @@ class ClinicalNoteRepository(BaseRepository):
             ORDER BY cn.created_at DESC
         """
         return self.execute_query(sql, (patient_id,))
+
+    def count_for_doctor(self, doctor_id: int) -> int:
+        row = self.execute_one(
+            "SELECT COUNT(*) AS cnt FROM clinical_notes WHERE doctor_id = %s",
+            (doctor_id,),
+        )
+        return row["cnt"] if row else 0
+
+    def list_for_doctor(self, doctor_id: int, limit: int = 50) -> list[dict]:
+        sql = """
+            SELECT cn.*, u.full_name AS patient_name
+            FROM clinical_notes cn
+            JOIN users u ON u.id = cn.patient_id
+            WHERE cn.doctor_id = %s
+            ORDER BY cn.created_at DESC
+            LIMIT %s
+        """
+        return self.execute_query(sql, (doctor_id, limit))
