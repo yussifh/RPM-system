@@ -4,7 +4,7 @@
 # ==============================================================
 
 # --- Frontend / Dashboard ---
-streamlit==1.38.0
+streamlit==1.60.0
 
 # --- Backend / Core ---
 python-dotenv==1.0.1

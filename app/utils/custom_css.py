@@ -154,11 +154,118 @@ def vital_card(label: str, value: str, unit: str = "", tone: str = "normal",
     """
 
 
+# ── Landing / marketing components ─────────────────────────────────
+def pill(text: str, tone: str = "primary") -> str:
+    """Small rounded badge used in hero and feature sections."""
+    t = theme_tokens()
+    tone_colors = {
+        "primary": (t["primary"], t["tint_primary"]),
+        "info":    (t["info"],    t["tint_info"]),
+        "amber":   (t["amber"],   t["tint_amber"]),
+        "alert":   (t["alert"],   t["tint_alert"]),
+    }
+    color, bg = tone_colors.get(tone, (t["primary"], t["tint_primary"]))
+    return (f'<span style="background:{bg};color:{color};padding:4px 14px;'
+            f'border-radius:20px;font-size:12px;font-weight:600;'
+            f'display:inline-block;margin:4px;">{text}</span>')
+
+
+def feature_card(icon: str, title: str, description: str, accent: str = None) -> str:
+    """Landing feature card with Material icon, title and description."""
+    t = theme_tokens()
+    accent = accent or t["primary"]
+    return f"""
+    <div style="background:{t['surface']};border:1px solid {t['border']};border-top:3px solid {accent};
+         border-radius:14px;padding:22px 20px;height:100%;
+         box-shadow:0 1px 3px rgba(22,36,43,0.06);transition:transform .15s ease, box-shadow .15s ease;">
+        <div style="width:46px;height:46px;border-radius:12px;background:{t['tint_primary']};
+             display:flex;align-items:center;justify-content:center;margin-bottom:12px;
+             font-size:24px;color:{accent};">{icon}</div>
+        <h3 style="font-family:'Space Grotesk',sans-serif;color:{t['ink']};font-size:16px;
+             font-weight:700;margin:0 0 8px;">{title}</h3>
+        <p style="color:{t['muted']};font-size:13px;line-height:1.65;margin:0;">{description}</p>
+    </div>
+    """
+
+
+def stat_card(label: str, value: str, sub: str = "") -> str:
+    """Compact KPI card used in the landing stats strip."""
+    t = theme_tokens()
+    return f"""
+    <div style="background:{t['surface']};border:1px solid {t['border']};border-radius:14px;
+         padding:18px 16px;text-align:center;height:100%;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;
+             color:{t['primary']};line-height:1;">{value}</div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
+             color:{t['muted']};margin-top:8px;">{label}</div>
+        {f'<div style="font-size:11px;color:{t["muted"]};margin-top:4px;">{sub}</div>' if sub else ""}
+    </div>
+    """
+
+
+def landing_hero(
+    eyebrow: str,
+    title: str,
+    subtitle: str,
+    tags: list,
+    tag_tone: str = "primary",
+) -> str:
+    """Full-width landing hero: eyebrow, big Space Grotesk title, subtitle and pills."""
+    t = theme_tokens()
+    pills = "".join(pill(tag, tag_tone) for tag in tags)
+    return f"""
+    <div style="position:relative;overflow:hidden;border-radius:18px;
+         background:linear-gradient(135deg, {t['tint_primary']} 0%, {t['surface']} 55%, {t['tint_info']} 100%);
+         border:1px solid {t['border']};padding:52px 28px 40px;text-align:center;margin-bottom:22px;">
+        <div style="position:absolute;top:-70px;right:-70px;width:220px;height:220px;border-radius:50%;
+             background:{t['pulse']};opacity:.08;filter:blur(10px);"></div>
+        <div style="position:absolute;bottom:-90px;left:-60px;width:240px;height:240px;border-radius:50%;
+             background:{t['info']};opacity:.06;filter:blur(10px);"></div>
+        <div style="position:relative;">
+            <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:18px;">
+                <span style="width:10px;height:10px;border-radius:50%;background:{t['pulse']};
+                      box-shadow:0 0 0 0 {t['pulse']};animation:vpulse 2.4s infinite;"></span>
+                <span style="font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+                      color:{t['muted']};">{eyebrow}</span>
+            </div>
+            <h1 style="font-family:'Space Grotesk',sans-serif;font-size:40px;font-weight:700;
+                 color:{t['ink']};margin:0;line-height:1.12;letter-spacing:-.02em;">{title}</h1>
+            <p style="font-size:15px;color:{t['muted']};margin:16px 0 0;font-weight:400;max-width:640px;
+                 margin-left:auto;margin-right:auto;">{subtitle}</p>
+            <div style="margin-top:20px;">{pills}</div>
+            <div style="max-width:640px;margin:22px auto 0;">{ecg_svg(t['pulse'], width=84, height=30)}</div>
+        </div>
+    </div>
+    """
+
+
+def section_heading(icon: str, title: str, subtitle: str = "") -> str:
+    """Section header with Material icon and optional subtitle."""
+    t = theme_tokens()
+    sub = (f'<p style="font-size:13px;color:{t["muted"]};margin:6px 0 0;">{subtitle}</p>'
+           if subtitle else "")
+    return f"""
+    <div style="margin:26px 0 16px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:20px;color:{t['primary']};">{icon}</span>
+            <h2 style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;
+                 color:{t['ink']};margin:0;letter-spacing:-.01em;">{title}</h2>
+        </div>
+        {sub}
+    </div>
+    """
+
+
 # ── Theme CSS ──────────────────────────────────────────────────────
 def _shared_css() -> str:
     return """
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
+    .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: normal;
+        font-style: normal; font-size: 24px; line-height: 1; letter-spacing: normal; text-transform: none;
+        display: inline-block; white-space: nowrap; word-wrap: normal; direction: ltr;
+        font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     html, body, [class*="css"], .stMarkdown, .stApp {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
