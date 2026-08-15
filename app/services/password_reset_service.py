@@ -31,7 +31,7 @@ class PasswordResetService:
             raise ValidationError("Password must be at least 8 characters and include a letter and a number.")
         token_row = self.reset_repo.get_valid_token(token.strip())
         if token_row is None:
-            raise ValidationError("This reset token is invalid or has expired. Please request a new one (tokens expire after 30 minutes).")
+            raise ValidationError(f"This reset token is invalid or has expired. Please request a new one (tokens expire after {PasswordResetRepository.OTP_EXPIRY_MINUTES} minutes).")
         new_hash = PasswordHasher.hash_password(new_password)
         self.user_repo.update_password(token_row["user_id"], new_hash)
         self.reset_repo.mark_used(token.strip())

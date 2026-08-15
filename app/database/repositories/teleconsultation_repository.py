@@ -59,6 +59,18 @@ class TeleconsultationRepository(BaseRepository):
         """
         return self.execute_query(sql, (doctor_user_id,))
 
+    def list_all(self) -> list[dict]:
+        sql = """
+            SELECT t.*,
+                   p.full_name AS patient_name,
+                   d.full_name AS doctor_name
+            FROM teleconsultations t
+            JOIN users p ON p.id = t.patient_user_id
+            JOIN users d ON d.id = t.doctor_user_id
+            ORDER BY t.created_at DESC
+        """
+        return self.execute_query(sql)
+
     def list_for_patient(self, patient_user_id: int) -> list[dict]:
         sql = """
             SELECT t.*, d.full_name AS doctor_name

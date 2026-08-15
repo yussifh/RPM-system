@@ -118,7 +118,7 @@ class PredictionRepository(BaseRepository):
             (limit,),
         )
 
-    def get_risk_distribution(self) -> dict:
+    def get_risk_distribution(self) -> list[dict]:
         """Admin report: count of patients by risk level per disease."""
         rows = self.execute_query(
             """

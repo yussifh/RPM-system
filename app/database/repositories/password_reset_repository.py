@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Optional
 from app.database.repositories.base_repository import BaseRepository
 
@@ -17,7 +17,7 @@ class PasswordResetRepository(BaseRepository):
         if token is None:
             token = secrets.token_hex(32)
 
-        expires_at = datetime.now(timezone.utc) + timedelta(minutes=self.OTP_EXPIRY_MINUTES)
+        expires_at = datetime.utcnow() + timedelta(minutes=self.OTP_EXPIRY_MINUTES)
         self.execute_write(
             """
             INSERT INTO password_reset_tokens (user_id, token, expires_at)
@@ -33,7 +33,7 @@ class PasswordResetRepository(BaseRepository):
             SELECT * FROM password_reset_tokens
             WHERE token = %s
               AND used = FALSE
-              AND expires_at > NOW()
+              AND expires_at > UTC_TIMESTAMP()
             """,
             (token,),
         )
@@ -47,5 +47,5 @@ class PasswordResetRepository(BaseRepository):
 
     def cleanup_expired(self) -> None:
         self.execute_write(
-            "DELETE FROM password_reset_tokens WHERE expires_at < NOW() OR used = TRUE",
+            "DELETE FROM password_reset_tokens WHERE expires_at < UTC_TIMESTAMP() OR used = TRUE",
         )

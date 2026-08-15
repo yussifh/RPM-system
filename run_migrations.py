@@ -67,8 +67,13 @@ CREATE TABLE IF NOT EXISTS system_settings (
 """
 
 for statement in SQL.split(";"):
-    stmt = statement.strip()
-    if stmt and not stmt.startswith("--"):
+    # Remove leading comment lines, then check if any real SQL remains.
+    stmt_lines = [
+        line for line in statement.splitlines()
+        if line.strip() and not line.strip().startswith("--")
+    ]
+    stmt = "\n".join(stmt_lines).strip()
+    if stmt:
         cursor.execute(stmt)
         print(f"OK: {stmt[:60]}...")
 
