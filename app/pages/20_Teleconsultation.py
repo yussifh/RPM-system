@@ -44,7 +44,7 @@ def jitsi_meeting_html(room_id: str, display_name: str, height: int = 520) -> st
           configOverwrite: {{
             prejoinPageEnabled: false,
             startWithAudioMuted: false,
-            startWithVideoMuted: false,
+            startWithVideoMuted: true,
             disableDeepLinking: true,
             enableClosePage: false
           }},
@@ -62,9 +62,9 @@ def jitsi_meeting_html(room_id: str, display_name: str, height: int = 520) -> st
 
 def embed_call(s: dict, display_name: str):
     st.markdown("#### 🔴 Live call")
-    st.caption(f"Room **{s['room_id']}** — allow camera/microphone when the browser asks. "
-               "The other participant must open the same session on another device (same Wi-Fi).")
-    st.components.v1.html(jitsi_meeting_html(s["room_id"], display_name), height=520, scrolling=False)
+    st.caption(f"Room **{s['room_id']}** — the call starts with your **camera off**; turn it on with the camera "
+               "button when you're ready. The other participant must open the same session on another device (same Wi-Fi).")
+    st.iframe(jitsi_meeting_html(s["room_id"], display_name), height=520)
 
 
 role = user["role"]
@@ -98,7 +98,7 @@ if role == "doctor":
                         tele_repo.update_status(s["id"], "in_progress")
                         st.rerun()
                 elif s["status"] == "in_progress":
-                    embed_call(s, f"Dr. {user['full_name']}")
+                    embed_call(s, user['full_name'])
                     col1, col2 = st.columns(2)
                     with col1:
                         st.markdown("**Session Notes**")
