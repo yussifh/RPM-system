@@ -2,7 +2,7 @@
 19_Doctor_Rating.py — Patients rate doctors; doctors see feedback
 """
 import streamlit as st
-from app.utils.custom_css import apply_theme, profile_widget, notification_bell
+from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 from app.core.security import SessionManager
 from app.database.repositories.rating_repository import RatingRepository
 from app.database.repositories.patient_repository import PatientRepository
@@ -23,7 +23,7 @@ rating_repo = RatingRepository()
 patient_repo = PatientRepository()
 doctor_repo = DoctorRepository()
 
-st.markdown("## ⭐ Doctor Ratings")
+st.markdown(page_header("⭐", "Doctor Ratings", "Rate your doctor and review past feedback."), unsafe_allow_html=True)
 
 role = user["role"]
 
@@ -62,7 +62,7 @@ if role == "patient":
             with st.form("rate_form"):
                 stars = st.slider("Your Rating", 1, 5, 3, help="1=Poor, 5=Excellent")
                 comment = st.text_area("Your Feedback (optional)", placeholder="How was your experience?")
-                if st.form_submit_button("Submit Rating", use_container_width=True):
+                if st.form_submit_button("Submit Rating", width="stretch"):
                     if stars < 1 or stars > 5:
                         st.error("Rating must be between 1 and 5.")
                     else:
@@ -137,4 +137,4 @@ elif role == "admin":
         import pandas as pd
         df = pd.DataFrame(ratings)
         st.dataframe(df[["patient_name", "doctor_name", "rating", "comment", "created_at"]],
-                      use_container_width=True, hide_index=True)
+                      width="stretch", hide_index=True)

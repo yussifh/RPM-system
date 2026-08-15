@@ -6,12 +6,13 @@ Shows complete conversation thread with timestamps.
 """
 
 import streamlit as st
+import html
 from datetime import datetime
 
 from app.core.security import SessionManager
 from app.database.repositories.message_repository import MessageRepository
 from app.database.repositories.user_repository import UserRepository
-from app.utils.custom_css import apply_theme, profile_widget, notification_bell
+from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 
 st.set_page_config(page_title="Chat History", page_icon="💬", layout="wide")
 apply_theme()
@@ -24,8 +25,7 @@ if not user:
 profile_widget(user)
 notification_bell(user)
 
-st.title("💬 Chat History")
-st.caption("View your full conversation thread.")
+st.markdown(page_header("💬", "Chat History", "View your full conversation thread."), unsafe_allow_html=True)
 
 msg_repo = MessageRepository()
 user_repo = UserRepository()
@@ -59,16 +59,19 @@ if user["role"] == "doctor":
                 border = "#0E7A5C" if is_sent else "#DCE5E1"
 
                 read_status = "👁️ Read" if msg.is_read else "📩 Delivered"
+                esc_name = html.escape(sender_name)
+                esc_subject = html.escape(msg.subject or "")
+                esc_body = html.escape(msg.body or "")
 
                 st.markdown(f"""
                 <div style="background:{bg};border:1px solid {border};border-radius:10px;
                      padding:12px 16px;margin:8px 0;max-width:80%;float:{align};">
-                    <div style="font-weight:600;font-size:13px;color:#333;">{sender_name}</div>
+                    <div style="font-weight:600;font-size:13px;color:#333;">{esc_name}</div>
                     <div style="font-size:12px;color:#888;margin-bottom:6px;">
                         {msg.sent_at.strftime('%d %b %Y, %I:%M %p') if msg.sent_at else ''} • {read_status}
                     </div>
-                    <div style="font-weight:600;color:#0E7A5C;margin-bottom:4px;">{msg.subject or ''}</div>
-                    <div style="font-size:13px;color:#333;white-space:pre-wrap;">{msg.body or ''}</div>
+                    <div style="font-weight:600;color:#0E7A5C;margin-bottom:4px;">{esc_subject}</div>
+                    <div style="font-size:13px;color:#333;white-space:pre-wrap;">{esc_body}</div>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -102,15 +105,19 @@ elif user["role"] == "patient":
                 align = "right" if is_sent else "left"
                 border = "#0E7A5C" if is_sent else "#DCE5E1"
 
+                esc_name = html.escape(sender_name)
+                esc_subject = html.escape(msg.subject or "")
+                esc_body = html.escape(msg.body or "")
+
                 st.markdown(f"""
                 <div style="background:{bg};border:1px solid {border};border-radius:10px;
                      padding:12px 16px;margin:8px 0;max-width:80%;float:{align};">
-                    <div style="font-weight:600;font-size:13px;color:#333;">{sender_name}</div>
+                    <div style="font-weight:600;font-size:13px;color:#333;">{esc_name}</div>
                     <div style="font-size:12px;color:#888;margin-bottom:6px;">
                         {msg.sent_at.strftime('%d %b %Y, %I:%M %p') if msg.sent_at else ''}
                     </div>
-                    <div style="font-weight:600;color:#0E7A5C;margin-bottom:4px;">{msg.subject or ''}</div>
-                    <div style="font-size:13px;color:#333;white-space:pre-wrap;">{msg.body or ''}</div>
+                    <div style="font-weight:600;color:#0E7A5C;margin-bottom:4px;">{esc_subject}</div>
+                    <div style="font-size:13px;color:#333;white-space:pre-wrap;">{esc_body}</div>
                 </div>
                 """, unsafe_allow_html=True)
 

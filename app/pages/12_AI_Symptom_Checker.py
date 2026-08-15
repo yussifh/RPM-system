@@ -16,7 +16,7 @@ from datetime import datetime
 
 from app.core.security import SessionManager
 from app.services.symptom_checker_service import SymptomCheckerService
-from app.utils.custom_css import apply_theme, profile_widget, notification_bell
+from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 
 st.set_page_config(page_title="AI Symptom Checker", page_icon="🩺", layout="wide")
 apply_theme()
@@ -33,8 +33,7 @@ if user["role"] not in ("patient", "doctor"):
 profile_widget(user)
 notification_bell(user)
 
-st.title("🩺 AI Symptom Checker")
-st.caption("Select your symptoms and get an AI-powered risk assessment for stroke, hypertension, and diabetes.")
+st.markdown(page_header("🩺", "AI Symptom Checker", "Select your symptoms and get an AI-powered risk assessment for stroke, hypertension, and diabetes."), unsafe_allow_html=True)
 
 symptom_service = SymptomCheckerService()
 all_symptoms = symptom_service.get_all_symptoms()
@@ -73,7 +72,7 @@ with col3:
 st.markdown("---")
 
 # ── Assessment Button ────────────────────────────────────────────
-if st.button("🔍 Get AI Assessment", use_container_width=True, type="primary"):
+if st.button("🔍 Get AI Assessment", width="stretch", type="primary"):
     if not selected_symptoms:
         st.warning("Please select at least one symptom to get an assessment.")
     else:

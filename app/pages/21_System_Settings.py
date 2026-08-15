@@ -2,7 +2,7 @@
 21_System_Settings.py — Admin-configurable system settings
 """
 import streamlit as st
-from app.utils.custom_css import apply_theme, profile_widget, notification_bell
+from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 from app.core.security import SessionManager
 from app.database.repositories.settings_repository import SettingsRepository
 
@@ -24,7 +24,7 @@ notification_bell(user)
 settings_repo = SettingsRepository()
 settings_repo.seed_defaults()
 
-st.markdown("## ⚙️ System Settings")
+st.markdown(page_header("⚙️", "System Settings", "Configure clinic info, vitals thresholds, notifications, and security."), unsafe_allow_html=True)
 
 tab1, tab2, tab3, tab4 = st.tabs(["🏥 Clinic Info", "📊 Vitals Thresholds", "📧 Notifications", "🔐 Security"])
 
@@ -39,7 +39,7 @@ with tab1:
             clinic_phone = st.text_input("Clinic Phone", value=settings_repo.get("clinic_phone") or "")
             st.empty()
 
-        if st.form_submit_button("💾 Save Clinic Info", use_container_width=True):
+        if st.form_submit_button("💾 Save Clinic Info", width="stretch"):
             settings_repo.set("clinic_name", clinic_name, user["id"])
             settings_repo.set("clinic_email", clinic_email, user["id"])
             settings_repo.set("clinic_phone", clinic_phone, user["id"])
@@ -70,7 +70,7 @@ with tab2:
                                         value=int(settings_repo.get("vitals_threshold_spo2_low") or 90))
             st.empty()
 
-        if st.form_submit_button("💾 Save Thresholds", use_container_width=True):
+        if st.form_submit_button("💾 Save Thresholds", width="stretch"):
             settings_repo.set("vitals_threshold_bp_systolic_high", str(bp_systolic), user["id"])
             settings_repo.set("vitals_threshold_bp_diastolic_high", str(bp_diastolic), user["id"])
             settings_repo.set("vitals_threshold_hr_high", str(hr_high), user["id"])
@@ -100,7 +100,7 @@ with tab3:
             st.empty()
             st.empty()
 
-        if st.form_submit_button("💾 Save Notification Settings", use_container_width=True):
+        if st.form_submit_button("💾 Save Notification Settings", width="stretch"):
             settings_repo.set("smtp_host", smtp_host, user["id"])
             settings_repo.set("smtp_port", smtp_port, user["id"])
             settings_repo.set("smtp_user", smtp_user, user["id"])
@@ -120,7 +120,7 @@ with tab4:
             value=int(settings_repo.get("session_timeout_min") or 60),
         )
 
-        if st.form_submit_button("💾 Save Security Settings", use_container_width=True):
+        if st.form_submit_button("💾 Save Security Settings", width="stretch"):
             settings_repo.set("session_timeout_min", str(session_timeout), user["id"])
             st.success("Security settings updated!")
             st.rerun()

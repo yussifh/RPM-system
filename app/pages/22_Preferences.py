@@ -2,7 +2,7 @@
 22_Preferences.py — Dark mode toggle + language selector
 """
 import streamlit as st
-from app.utils.custom_css import apply_theme, profile_widget
+from app.utils.custom_css import apply_theme, profile_widget, page_header
 from app.utils.translations import t, language_selector, LANGUAGES
 from app.core.security import SessionManager
 
@@ -16,7 +16,7 @@ if not user:
 
 profile_widget(user)
 
-st.markdown("## 🎨 Preferences")
+st.markdown(page_header("🎨", "Preferences", "Dark mode and language settings for your experience."), unsafe_allow_html=True)
 
 col1, col2 = st.columns(2)
 

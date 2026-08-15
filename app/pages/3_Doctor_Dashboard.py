@@ -108,7 +108,7 @@ with patients_tab:
         c3.metric("Conditions", len(patient.chronic_conditions))
         c4.metric("Readings",   len(overview.get("vitals_history",[])))
 
-        latest = overview.get("vitals_history", [None])[0] if overview.get("vitals_history") else None
+        latest = overview.get("vitals_history", [None])[-1] if overview.get("vitals_history") else None
         if latest:
             st.markdown("#### Latest vitals")
             vc = st.columns(4)
@@ -137,25 +137,25 @@ with patients_tab:
         else:
             bp_records = [r for r in history if r.systolic_bp and r.diastolic_bp]
             if bp_records:
-                st.plotly_chart(build_blood_pressure_chart(bp_records), use_container_width=True)
+                st.plotly_chart(build_blood_pressure_chart(bp_records), width="stretch")
             c1,c2 = st.columns(2)
             with c1:
                 if any(r.heart_rate for r in history):
                     st.plotly_chart(build_single_metric_chart(
                         history,"heart_rate","Heart Rate","bpm",normal_range=(60,100),color="#7E5AA2"),
-                        use_container_width=True)
+                        width="stretch")
             with c2:
                 if any(r.glucose_level for r in history):
                     st.plotly_chart(build_single_metric_chart(
                         history,"glucose_level","Glucose Level","mg/dL",normal_range=(70,140),color="#B8761D"),
-                        use_container_width=True)
+                        width="stretch")
 
             st.subheader("📋 Vitals table")
             st.dataframe([{
                 "Date": r.recorded_at, "Systolic": r.systolic_bp, "Diastolic": r.diastolic_bp,
                 "Heart Rate": r.heart_rate, "Glucose": r.glucose_level,
                 "SpO2 (%)": r.oxygen_saturation, "Symptoms": r.symptoms,
-            } for r in history], use_container_width=True)
+            } for r in history], width="stretch")
 
             output = io.StringIO()
             writer = csv.writer(output)
@@ -336,29 +336,35 @@ with patients_tab:
                             placeholder="e.g., Follow up in 2 weeks, monitor BP daily...")
                         signature_name = st.text_input("Signature Name", value=user["full_name"] or "")
 
-                    submitted = st.form_submit_button("📄 Generate Prescription PDF", use_container_width=True)
+                    submitted = st.form_submit_button("📄 Generate Prescription PDF", width="stretch")
                     if submitted:
                         if not diagnosis:
                             st.error("Please enter a diagnosis.")
                         else:
                             try:
-                                patient = doctor_service.get_patient(selected_id)
+                                patient = overview["patient"]
                                 pdf_bytes = generate_prescription_pdf(
                                     doctor_name=signature_name or user["full_name"],
                                     doctor_specialization=doctor_info.specialization or "General Practice",
-                                    patient_name=patient.get("full_name", "Unknown"),
-                                    patient_age=patient.get("age"),
-                                    patient_gender=patient.get("gender", "—"),
-                                    medications=active_meds,
+                                    patient_name=patient.full_name or "Unknown",
+                                    patient_age=overview["age"],
+                                    patient_gender=patient.gender or "—",
+                                    medications=[{
+                                        "name": m.name,
+                                        "dosage": m.dosage,
+                                        "frequency": m.frequency,
+                                        "duration": f"{m.start_date} → {m.end_date}" if m.end_date else f"from {m.start_date}",
+                                        "instructions": m.notes,
+                                    } for m in active_meds],
                                     diagnosis=diagnosis,
                                     notes=instructions or doctor_notes or "No additional instructions.",
                                 )
                                 st.download_button(
                                     "⬇️ Download Prescription PDF",
                                     data=pdf_bytes,
-                                    file_name=f"prescription_{patient.get('full_name','patient').replace(' ','_')}.pdf",
+                                    file_name=f"prescription_{str(patient.full_name or 'patient').replace(' ','_')}.pdf",
                                     mime="application/pdf",
-                                    use_container_width=True,
+                                    width="stretch",
                                 )
                                 st.success("✅ Prescription PDF generated!")
                             except Exception as e:
@@ -399,8 +405,8 @@ with compare_tab:
             fig.update_layout(barmode="group", title="Patient Risk Score Comparison",
                               xaxis_title="Patient", yaxis_title="Risk (%)",
                               yaxis=dict(range=[0,100]))
-            st.plotly_chart(fig, use_container_width=True)
-            st.dataframe(df, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
+            st.dataframe(df, width="stretch")
             crit = df[df["Risk Level"]=="critical"]
             if not crit.empty:
                 st.error(f"🔴 **{len(crit)} critical risk reading(s) require immediate attention!**")

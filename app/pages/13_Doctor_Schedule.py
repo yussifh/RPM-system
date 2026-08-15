@@ -10,7 +10,7 @@ from datetime import time
 
 from app.core.security import SessionManager
 from app.database.repositories.doctor_schedule_repository import DoctorScheduleRepository, DAY_NAMES
-from app.utils.custom_css import apply_theme, profile_widget, notification_bell
+from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 
 st.set_page_config(page_title="My Schedule", page_icon="📅", layout="wide")
 apply_theme()
@@ -27,8 +27,7 @@ if user["role"] != "doctor":
 profile_widget(user)
 notification_bell(user)
 
-st.title("📅 My Weekly Schedule")
-st.caption("Set your availability for appointment booking.")
+st.markdown(page_header("📅", "My Weekly Schedule", "Set your availability for appointment booking."), unsafe_allow_html=True)
 
 schedule_repo = DoctorScheduleRepository()
 doctor_id = user["id"]
@@ -68,7 +67,7 @@ with st.form("schedule_form"):
 
         schedule_data[i] = {"start": start, "end": end, "active": active}
 
-    if st.form_submit_button("💾 Save Schedule", use_container_width=True):
+    if st.form_submit_button("💾 Save Schedule", width="stretch"):
         saved_count = 0
         for day_idx, data in schedule_data.items():
             if data["active"]:

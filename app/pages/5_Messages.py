@@ -44,7 +44,7 @@ apply_theme()
 profile_widget(user)
 notification_bell(user)
 
-st.title(f"✉️ Messages{badge}")
+st.markdown(page_header("✉️", "Messages", f"Your secure inbox with your care team.{badge}"), unsafe_allow_html=True)
 
 if unread > 0:
     st.info(f"📬 You have **{unread} unread message(s)**.")
@@ -88,7 +88,7 @@ if role == "patient":
             body = st.text_area("Message", value=template,
                                  placeholder="Describe your symptoms or question here...",
                                  height=180)
-            if st.form_submit_button("📤 Send Message", use_container_width=True):
+            if st.form_submit_button("📤 Send Message", width="stretch"):
                 if not subject.strip() or not body.strip():
                     st.error("Please fill in both subject and message.")
                 else:
@@ -120,7 +120,9 @@ if role == "patient":
                         with st.expander("Read message"):
                             st.write(msg.body)
                             if is_unread:
-                                msg_repo.mark_as_read(msg.id, user["id"])
+                                if st.button("✅ Mark as read", key=f"read_inbox_{msg.id}"):
+                                    msg_repo.mark_as_read(msg.id, user["id"])
+                                    st.rerun()
                     with col2:
                         if st.button("🗑️", key=f"del_inbox_{msg.id}", help="Delete"):
                             msg_repo.delete(msg.id, user["id"])
@@ -192,7 +194,9 @@ elif role == "doctor":
                             st.write(msg.body)
 
                             if is_unread:
-                                msg_repo.mark_as_read(msg.id, user["id"])
+                                if st.button("✅ Mark as read", key=f"read_doc_{msg.id}"):
+                                    msg_repo.mark_as_read(msg.id, user["id"])
+                                    st.rerun()
 
                             # Quick reply
                             with st.form(f"reply_{msg.id}"):
@@ -223,17 +227,23 @@ elif role == "doctor":
         if not patients:
             st.info("No patients assigned to you yet.")
         else:
+            # Quick message templates for doctors
+            st.caption("Quick templates:")
+            tc1, tc2, tc3 = st.columns(3)
+            template_body = ""
+            if tc1.button("📋 Follow-Up"):
+                template_body = "This is a follow-up on your recent readings. Please contact me if you have any concerns."
+            if tc2.button("💊 Medication Reminder"):
+                template_body = "Please remember to take your medications as prescribed and report any side effects."
+            if tc3.button("🏥 Appointment"):
+                template_body = "Please confirm your upcoming appointment and arrive on time."
+
             with st.form("doctor_compose_form", clear_on_submit=True):
                 selected_patient = st.selectbox("Select Patient", list(patient_map.keys()))
                 subject = st.text_input("Subject",
                                          placeholder="e.g. Medication reminder, Appointment, Test results")
 
-                # Message templates for doctors
-                st.caption("Quick templates:")
-                tc1, tc2, tc3 = st.columns(3)
-                template_body = ""
-
-                body = st.text_area("Message",
+                body = st.text_area("Message", value=template_body,
                                      placeholder="Type your message to the patient here...",
                                      height=180)
 
@@ -241,7 +251,7 @@ elif role == "doctor":
                 urgency = st.selectbox("Urgency", ["Normal", "Important", "Urgent"])
                 urgency_prefix = {"Normal": "", "Important": "⚠️ IMPORTANT: ", "Urgent": "🚨 URGENT: "}
 
-                if st.form_submit_button("📤 Send Message", use_container_width=True):
+                if st.form_submit_button("📤 Send Message", width="stretch"):
                     if not subject.strip() or not body.strip():
                         st.error("Please fill in both subject and message.")
                     else:

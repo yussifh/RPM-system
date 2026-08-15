@@ -19,7 +19,7 @@ from app.core.security import SessionManager
 from app.database.repositories.medication_repository import MedicationRepository
 from app.database.repositories.lifestyle_repository import LifestyleRepository
 from app.services.medication_interaction_service import MedicationInteractionService
-from app.utils.custom_css import apply_theme, profile_widget, notification_bell
+from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 
 st.set_page_config(page_title="Medications & Lifestyle", page_icon="💊", layout="wide")
 apply_theme()
@@ -40,7 +40,7 @@ interaction_svc = MedicationInteractionService()
 profile_widget(user)
 notification_bell(user)
 
-st.title("💊 Medications & Lifestyle")
+st.markdown(page_header("💊", "Medications & Lifestyle", "Prescriptions, adherence, and lifestyle habits at a glance"), unsafe_allow_html=True)
 
 
 def generate_medication_pdf(patient_name: str, active_meds, stopped_meds, adherence_rate: float) -> bytes:
@@ -177,7 +177,7 @@ if user["role"] == "doctor":
                 med_notes = st.text_area("Prescription Notes (optional)",
                                           placeholder="e.g. Take with food. Monitor blood sugar after 2 weeks.")
 
-                if st.form_submit_button("💊 Prescribe Medication", use_container_width=True):
+                if st.form_submit_button("💊 Prescribe Medication", width="stretch"):
                     if not med_name or not dosage:
                         st.error("Please fill in medication name and dosage.")
                     else:
@@ -328,7 +328,7 @@ elif user["role"] == "patient":
                 med_notes = st.text_area("Notes (optional)",
                                           placeholder="e.g. Take with food, avoid grapefruit")
 
-                if st.form_submit_button("Add Medication ✅", use_container_width=True):
+                if st.form_submit_button("Add Medication ✅", width="stretch"):
                     if not med_name or not dosage:
                         st.error("Please fill in medication name and dosage.")
                     else:
@@ -408,7 +408,7 @@ elif user["role"] == "patient":
             data=pdf_bytes,
             file_name=f"medications_{user['full_name'].replace(' ', '_')}_{date.today()}.pdf",
             mime="application/pdf",
-            use_container_width=True,
+            width="stretch",
         )
 
         if active_meds:
@@ -490,13 +490,13 @@ elif user["role"] == "patient":
                     if not already_logged:
                         with c2:
                             if st.button("✅ Taken", key=f"taken_{med.id}",
-                                          use_container_width=True):
+                                          width="stretch"):
                                 med_repo.log_taken(med.id, patient_id, taken=True)
                                 st.success(f"Logged: {med.name} taken ✅")
                                 st.rerun()
                         with c3:
                             if st.button("❌ Missed", key=f"missed_{med.id}",
-                                          use_container_width=True):
+                                          width="stretch"):
                                 med_repo.log_taken(med.id, patient_id, taken=False)
                                 st.warning(f"Logged: {med.name} missed ❌")
                                 st.rerun()
@@ -597,7 +597,7 @@ elif user["role"] == "patient":
                                        placeholder="e.g. low-sugar, low-salt, balanced, vegetarian")
             lifestyle_notes = st.text_area("Additional Notes (optional)")
 
-            if st.form_submit_button("Save Lifestyle Data ✅", use_container_width=True):
+            if st.form_submit_button("Save Lifestyle Data ✅", width="stretch"):
                 lifestyle_repo.save(
                     patient_id=patient_id,
                     height_cm=height_cm if height_cm > 0 else None,
@@ -648,7 +648,7 @@ elif user["role"] == "patient":
                     yaxis=dict(range=[10, 50]),
                     margin=dict(t=60),
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
 
             st.markdown("#### Lifestyle Records")
             st.dataframe([{
@@ -660,7 +660,7 @@ elif user["role"] == "patient":
                 "Cholesterol":    float(r.total_cholesterol) if r.total_cholesterol else "—",
                 "Exercise (min)": r.exercise_minutes_week or "—",
                 "Activity":       r.activity_level or "—",
-            } for r in history], use_container_width=True)
+            } for r in history], width="stretch")
 
 if st.button("Log Out"):
     SessionManager.logout()

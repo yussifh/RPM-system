@@ -11,7 +11,7 @@ from datetime import date, datetime, timedelta
 from app.core.security import SessionManager
 from app.database.repositories.medication_repository import MedicationRepository
 from app.database.repositories.message_repository import MessageRepository
-from app.utils.custom_css import apply_theme, profile_widget, notification_bell
+from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 
 st.set_page_config(page_title="Medication Reminders", page_icon="⏰", layout="wide")
 apply_theme()
@@ -28,8 +28,7 @@ if user["role"] != "patient":
 profile_widget(user)
 notification_bell(user)
 
-st.title("⏰ Medication Reminders")
-st.caption("Set up reminders to never miss your medications.")
+st.markdown(page_header("⏰", "Medication Reminders", "Set up reminders to never miss your medications."), unsafe_allow_html=True)
 
 med_repo = MedicationRepository()
 msg_repo = MessageRepository()
@@ -91,7 +90,7 @@ else:
 
     st.info("Send a reminder message to yourself or ask your doctor to send reminders.")
 
-    if st.button("📨 Send Daily Reminder Summary to My Doctor", use_container_width=True):
+    if st.button("📨 Send Daily Reminder Summary to My Doctor", width="stretch"):
         # Build reminder message
         med_list = "\n".join(
             f"  💊 {med.name} — {med.dosage} ({med.frequency})" for med in active_meds

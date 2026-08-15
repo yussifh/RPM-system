@@ -5,7 +5,7 @@ participants join the same room; they must be on the same network as the app.
 """
 import json
 import streamlit as st
-from app.utils.custom_css import apply_theme, profile_widget, notification_bell
+from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 from app.core.security import SessionManager
 from app.database.repositories.teleconsultation_repository import TeleconsultationRepository
 from app.database.repositories.patient_repository import PatientRepository
@@ -24,7 +24,7 @@ notification_bell(user)
 tele_repo = TeleconsultationRepository()
 patient_repo = PatientRepository()
 
-st.markdown("## 📹 Teleconsultation")
+st.markdown(page_header("📹", "Teleconsultation", "Secure video sessions with your care team."), unsafe_allow_html=True)
 
 
 def jitsi_meeting_html(room_id: str, display_name: str, height: int = 520) -> str:
@@ -125,7 +125,7 @@ if role == "doctor":
         else:
             patient_names = {f"{p.full_name} ({p.email})": p.user_id for p in patients}
             chosen = st.selectbox("Select Patient", list(patient_names.keys()))
-            if st.button("📹 Create & Start Session", use_container_width=True):
+            if st.button("📹 Create & Start Session", width="stretch"):
                 pid = patient_names[chosen]
                 tele_id = tele_repo.create(patient_user_id=pid, doctor_user_id=user["id"])
                 tele_repo.update_status(tele_id, "in_progress")
@@ -205,7 +205,19 @@ elif role == "patient":
                 """, unsafe_allow_html=True)
 
 elif role == "admin":
-    history = tele_repo.list_for_doctor(None)
+    history = tele_repo.list_all()
     st.metric("Total Sessions", tele_repo.count_all())
     st.markdown("---")
-    st.info("Admin view: Use the sidebar to navigate to specific doctor dashboards for session details.")
+    if not history:
+        st.info("No teleconsultation sessions yet.")
+    else:
+        st.subheader("📋 All Teleconsultation Sessions")
+        st.dataframe([{
+            "Patient": s.get("patient_name"),
+            "Doctor": s.get("doctor_name"),
+            "Room": s["room_id"],
+            "Status": s["status"].title(),
+            "Started": s["started_at"],
+            "Ended": s["ended_at"],
+            "Created": s["created_at"],
+        } for s in history], width="stretch")

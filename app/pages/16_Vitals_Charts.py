@@ -66,26 +66,42 @@ vitals = vitals_repo.get_history_between(patient_id, start, end)
 if not vitals:
     st.info("No vitals data available for the selected period.")
 else:
-    # Prepare data
-    dates = [v.recorded_at for v in vitals]
-    bp_sys = [v.systolic_bp for v in vitals if v.systolic_bp]
-    bp_dia = [v.diastolic_bp for v in vitals if v.diastolic_bp]
-    hr = [v.heart_rate for v in vitals if v.heart_rate]
-    glucose = [float(v.glucose_level) for v in vitals if v.glucose_level]
-    spo2 = [v.oxygen_saturation for v in vitals if v.oxygen_saturation]
-    weight = [float(v.weight_kg) for v in vitals if v.weight_kg]
+    # Prepare data — each metric keeps only the records that actually have it,
+    # so dates and values stay aligned (previously a missing metric shifted
+    # the x-axis dates for the remaining values).
+    bp_points = [(v.recorded_at, v.systolic_bp, v.diastolic_bp) for v in vitals
+                 if v.systolic_bp and v.diastolic_bp]
+    bp_dates = [p[0] for p in bp_points]
+    bp_sys = [p[1] for p in bp_points]
+    bp_dia = [p[2] for p in bp_points]
+
+    hr_points = [(v.recorded_at, v.heart_rate) for v in vitals if v.heart_rate]
+    hr_dates = [p[0] for p in hr_points]
+    hr = [p[1] for p in hr_points]
+
+    glucose_points = [(v.recorded_at, float(v.glucose_level)) for v in vitals if v.glucose_level]
+    glucose_dates = [p[0] for p in glucose_points]
+    glucose = [p[1] for p in glucose_points]
+
+    spo2_points = [(v.recorded_at, v.oxygen_saturation) for v in vitals if v.oxygen_saturation]
+    spo2_dates = [p[0] for p in spo2_points]
+    spo2 = [p[1] for p in spo2_points]
+
+    weight_points = [(v.recorded_at, float(v.weight_kg)) for v in vitals if v.weight_kg]
+    weight_dates = [p[0] for p in weight_points]
+    weight = [p[1] for p in weight_points]
 
     # ── Blood Pressure Chart ──────────────────────────────────────
     if bp_sys and bp_dia:
         st.markdown("### 🩺 Blood Pressure Trend")
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x=dates[:len(bp_sys)], y=bp_sys,
+            x=bp_dates, y=bp_sys,
             mode="lines+markers", name="Systolic",
             line=dict(color="#C73E3A", width=2),
         ))
         fig.add_trace(go.Scatter(
-            x=dates[:len(bp_dia)], y=bp_dia,
+            x=bp_dates, y=bp_dia,
             mode="lines+markers", name="Diastolic",
             line=dict(color="#2A6A9B", width=2),
         ))
@@ -96,14 +112,14 @@ else:
             height=350, margin=dict(t=40),
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     # ── Heart Rate Chart ──────────────────────────────────────────
     if hr:
         st.markdown("### ❤️ Heart Rate Trend")
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x=dates[:len(hr)], y=hr,
+            x=hr_dates, y=hr,
             mode="lines+markers", name="Heart Rate",
             line=dict(color="#B8761D", width=2),
             fill="tozeroy", fillcolor="rgba(226,166,59,0.1)",
@@ -114,14 +130,14 @@ else:
             yaxis_title="bpm", xaxis_title="Date",
             height=300, margin=dict(t=40),
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     # ── Glucose Chart ─────────────────────────────────────────────
     if glucose:
         st.markdown("### 🩸 Blood Glucose Trend")
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x=dates[:len(glucose)], y=glucose,
+            x=glucose_dates, y=glucose,
             mode="lines+markers", name="Glucose",
             line=dict(color="#0E7A5C", width=2),
             fill="tozeroy", fillcolor="rgba(34,169,150,0.1)",
@@ -133,14 +149,14 @@ else:
             yaxis_title="mg/dL", xaxis_title="Date",
             height=350, margin=dict(t=40),
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     # ── SpO2 Chart ────────────────────────────────────────────────
     if spo2:
         st.markdown("### 💨 Oxygen Saturation (SpO2)")
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x=dates[:len(spo2)], y=spo2,
+            x=spo2_dates, y=spo2,
             mode="lines+markers", name="SpO2",
             line=dict(color="#2A6A9B", width=2),
         ))
@@ -150,14 +166,14 @@ else:
             yaxis=dict(range=[85, 102]),
             height=300, margin=dict(t=40),
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     # ── Weight Chart ──────────────────────────────────────────────
     if weight:
         st.markdown("### ⚖️ Weight Trend")
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x=dates[:len(weight)], y=weight,
+            x=weight_dates, y=weight,
             mode="lines+markers", name="Weight",
             line=dict(color="#8B5CF6", width=2),
         ))
@@ -165,7 +181,7 @@ else:
             yaxis_title="kg", xaxis_title="Date",
             height=300, margin=dict(t=40),
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     # ── Stats Summary ─────────────────────────────────────────────
     st.markdown("---")

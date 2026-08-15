@@ -79,7 +79,7 @@ if not consent_repo.has_consent(user["id"]):
             key="consent_checkbox"
         )
 
-        if st.button("✅ Submit Consent", use_container_width=True):
+        if st.button("✅ Submit Consent", width="stretch"):
             if consent_text:
                 consent_repo.grant_consent(
                     patient_id=user["id"],
@@ -128,7 +128,7 @@ with submit_tab:
             height_cm          = st.number_input("Height (cm)",             min_value=0.0, max_value=250.0, value=0.0, step=0.5)
         symptoms = st.text_area("Symptoms (optional)", placeholder="e.g. mild headache, dizziness...")
         notes    = st.text_area("Additional Notes (optional)")
-        submitted = st.form_submit_button("Submit Reading ✅", use_container_width=True)
+        submitted = st.form_submit_button("Submit Reading ✅", width="stretch")
 
         if submitted:
             def nz(v): return None if v == 0 else v
@@ -204,7 +204,7 @@ with history_tab:
     if not history:
         st.info("No vitals submitted yet.")
     else:
-        latest = history[0]
+        latest = history[-1]
         st.markdown("#### Latest reading")
         m1,m2,m3,m4 = st.columns(4)
         m1.markdown(vital_card("Systolic BP", f"{latest.systolic_bp or '—'}", "mmHg", tone="info"), unsafe_allow_html=True)
@@ -215,24 +215,24 @@ with history_tab:
         st.markdown("#### Trend charts")
         bp_records = [r for r in history if r.systolic_bp and r.diastolic_bp]
         if bp_records:
-            st.plotly_chart(build_blood_pressure_chart(bp_records), use_container_width=True, key="history_bp")
+            st.plotly_chart(build_blood_pressure_chart(bp_records), width="stretch", key="history_bp")
         c1,c2 = st.columns(2)
         with c1:
             if any(r.heart_rate for r in history):
                 st.plotly_chart(build_single_metric_chart(
                     history,"heart_rate","Heart Rate","bpm",normal_range=(60,100),color="#7E5AA2"),
-                    use_container_width=True, key="history_hr")
+                    width="stretch", key="history_hr")
         with c2:
             if any(r.glucose_level for r in history):
                 st.plotly_chart(build_single_metric_chart(
                     history,"glucose_level","Glucose Level","mg/dL",normal_range=(70,140),color="#B8761D"),
-                    use_container_width=True, key="history_glucose")
+                    width="stretch", key="history_glucose")
         st.markdown("#### Raw records table")
         st.dataframe([{
             "Date": r.recorded_at, "Systolic": r.systolic_bp, "Diastolic": r.diastolic_bp,
             "Heart Rate": r.heart_rate, "Glucose": r.glucose_level,
             "SpO2 (%)": r.oxygen_saturation, "Temp (°C)": r.temperature_c, "Symptoms": r.symptoms,
-        } for r in history], use_container_width=True)
+        } for r in history], width="stretch")
 
 # ── AI Risk History ───────────────────────────────────────────────
 with risk_tab:
@@ -255,7 +255,7 @@ with risk_tab:
                 fig.add_hline(y=70, line_dash="dot", line_color="#C73E3A", annotation_text="High risk (70%)")
                 fig.update_layout(title=f"{disease.title()} Risk Score Over Time",
                     xaxis_title="Date", yaxis_title="Risk (%)", yaxis=dict(range=[0,100]), margin=dict(t=60))
-                st.plotly_chart(fig, use_container_width=True, key=f"risk_{disease}")
+                st.plotly_chart(fig, width="stretch", key=f"risk_{disease}")
                 latest_pred = disease_preds[-1]
                 icon = _RISK_COLORS.get(latest_pred.risk_level,"⚪")
                 st.write(f"**Latest {disease.title()} Risk:** {icon} {latest_pred.risk_level.upper()} "
@@ -273,7 +273,7 @@ with report_tab:
     st.subheader("📄 Download your health report")
     c1, c2 = st.columns(2)
     with c1: report_format = st.selectbox("Format", ["PDF (.pdf)", "Text (.txt)", "CSV (.csv)"])
-    if st.button("📥 Generate & Download Report", use_container_width=True):
+    if st.button("📥 Generate & Download Report", width="stretch"):
         history = vitals_service.get_history(user["id"], limit=100)
         if not history:
             st.warning("No vitals data to include in report.")
@@ -375,7 +375,7 @@ with vitals_chart_tab:
         # Blood Pressure chart
         bp_records = [r for r in history_all if r.systolic_bp and r.diastolic_bp]
         if bp_records:
-            st.plotly_chart(build_blood_pressure_chart(bp_records), use_container_width=True, key="overview_bp_chart")
+            st.plotly_chart(build_blood_pressure_chart(bp_records), width="stretch", key="overview_bp_chart")
 
         # Individual metric charts in 2x2 grid
         charts_data = [
@@ -394,7 +394,7 @@ with vitals_chart_tab:
                     st.plotly_chart(build_single_metric_chart(
                         history_all, field, title, unit,
                         normal_range=norm_range, color=color
-                    ), use_container_width=True, key=f"overview_{field}_{i}")
+                    ), width="stretch", key=f"overview_{field}_{i}")
                 else:
                     st.info(f"No {title.lower()} data recorded yet.")
             with col2:
@@ -404,7 +404,7 @@ with vitals_chart_tab:
                         st.plotly_chart(build_single_metric_chart(
                             history_all, field, title, unit,
                             normal_range=norm_range, color=color
-                        ), use_container_width=True, key=f"overview_{field}_{i+1}")
+                        ), width="stretch", key=f"overview_{field}_{i+1}")
                     else:
                         st.info(f"No {title.lower()} data recorded yet.")
 
@@ -420,7 +420,7 @@ with vitals_chart_tab:
                 "Temp (°C)": r.temperature_c,
                 "Weight (kg)": r.weight_kg,
                 "Symptoms": r.symptoms,
-            } for r in reversed(history_all)], use_container_width=True)
+            } for r in reversed(history_all)], width="stretch")
 
         # Auto-refresh section
         st.markdown("---")

@@ -7,7 +7,7 @@ and clinical notes over time.
 """
 
 import streamlit as st
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from io import BytesIO
 from fpdf import FPDF
 
@@ -19,7 +19,7 @@ from app.database.repositories.appointment_repository import AppointmentReposito
 from app.database.repositories.clinical_note_repository import ClinicalNoteRepository
 from app.database.repositories.patient_repository import PatientRepository
 from app.database.repositories.user_repository import UserRepository
-from app.utils.custom_css import apply_theme, profile_widget, notification_bell
+from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 
 st.set_page_config(page_title="Progress Report", page_icon="📊", layout="wide")
 apply_theme()
@@ -32,8 +32,7 @@ if not user:
 profile_widget(user)
 notification_bell(user)
 
-st.title("📊 Patient Progress Report")
-st.caption("Generate a comprehensive health progress report as PDF.")
+st.markdown(page_header("📊", "Patient Progress Report", "Generate a comprehensive health progress report as PDF."), unsafe_allow_html=True)
 
 # Determine patient_id
 if user["role"] == "patient":
@@ -127,7 +126,7 @@ def generate_progress_pdf(patient_name: str, start_date: date, end_date: date,
     pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(100, 100, 100)
     pdf.cell(0, 6, f"Report Period: {start_date.strftime('%d %B %Y')} — {end_date.strftime('%d %B %Y')}", new_x="LMARGIN", new_y="NEXT")
-    pdf.cell(0, 6, f"Generated: {date.today().strftime('%d %B %Y, %H:%M')}", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, f"Generated: {datetime.now().strftime('%d %B %Y, %H:%M')}", new_x="LMARGIN", new_y="NEXT")
     pdf.set_text_color(0, 0, 0)
     pdf.ln(4)
 
@@ -225,7 +224,7 @@ def generate_progress_pdf(patient_name: str, start_date: date, end_date: date,
     return bytes(pdf.output())
 
 
-if st.button("📥 Generate PDF Report", use_container_width=True, type="primary"):
+if st.button("📥 Generate PDF Report", width="stretch", type="primary"):
     pdf_bytes = generate_progress_pdf(
         patient_name, start_date, end_date,
         vitals_history, active_meds, all_meds,
@@ -236,7 +235,7 @@ if st.button("📥 Generate PDF Report", use_container_width=True, type="primary
         data=pdf_bytes,
         file_name=f"progress_report_{patient_name.replace(' ', '_')}_{start_date}_{end_date}.pdf",
         mime="application/pdf",
-        use_container_width=True,
+        width="stretch",
     )
     st.success("Report generated! Click the download button above.")
 

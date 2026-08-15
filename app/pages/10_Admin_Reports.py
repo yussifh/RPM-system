@@ -21,7 +21,7 @@ from app.database.repositories.user_repository import UserRepository
 from app.database.repositories.clinical_note_repository import ClinicalNoteRepository
 from app.database.repositories.appointment_repository import AppointmentRepository
 from app.database.repositories.audit_log_repository import AuditLogRepository
-from app.utils.custom_css import apply_theme, profile_widget, stat_tiles, notification_bell
+from app.utils.custom_css import apply_theme, profile_widget, stat_tiles, notification_bell, page_header
 
 st.set_page_config(page_title="Admin Reports", page_icon="📈", layout="wide")
 apply_theme()
@@ -49,8 +49,7 @@ stat_tiles([
     {"label": "Alerts",   "value": sum(stats.get("open_alerts_by_severity", {}).values())},
 ])
 
-st.title("📈 Admin Reports & Data Export")
-st.caption("System analytics, clinical data, and operational reports")
+st.markdown(page_header("📈", "Admin Reports & Data Export", "System analytics, clinical data, and operational reports"), unsafe_allow_html=True)
 
 analytics_tab, patients_tab, clinical_tab, operations_tab, export_tab = st.tabs([
     "📊 System Analytics", "👥 Patient Reports", "🏥 Clinical Reports",
@@ -93,7 +92,7 @@ with analytics_tab:
         )])
         fig.update_layout(margin=dict(t=10, b=10), height=280,
                           legend=dict(font=dict(size=11)))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     with c2:
         st.markdown("#### Open Alerts by Severity")
@@ -109,7 +108,7 @@ with analytics_tab:
                 marker_color=colors, text=counts, textposition="auto",
             )])
             fig2.update_layout(margin=dict(t=10, b=10), height=280, showlegend=False)
-            st.plotly_chart(fig2, use_container_width=True)
+            st.plotly_chart(fig2, width="stretch")
 
     st.divider()
     st.markdown("#### Vitals Collection Summary")
@@ -175,7 +174,7 @@ with patients_tab:
                 "Status": "Active" if p.is_active else "Inactive",
             })
 
-        st.dataframe(patient_data, use_container_width=True)
+        st.dataframe(patient_data, width="stretch")
 
         csv_data = _to_csv(patient_data)
         st.download_button(
@@ -202,7 +201,7 @@ with patients_tab:
             "SpO2": v["oxygen_saturation"],
             "Symptoms": v["symptoms"],
         } for v in vitals_data]
-        st.dataframe(display_data, use_container_width=True)
+        st.dataframe(display_data, width="stretch")
 
         csv_data = _to_csv(display_data)
         st.download_button(
@@ -235,7 +234,7 @@ with clinical_tab:
                 "Model": p["model_version"],
                 "Date": p["predicted_at"],
             } for p in predictions]
-            st.dataframe(pred_data, use_container_width=True)
+            st.dataframe(pred_data, width="stretch")
 
             st.markdown("#### Risk Distribution")
             risk_dist = prediction_repo.get_risk_distribution()
@@ -255,7 +254,7 @@ with clinical_tab:
                 fig.update_layout(barmode="group", title="Risk Level Distribution by Disease",
                                   xaxis_title="Risk Level", yaxis_title="Patient Count",
                                   height=300, margin=dict(t=50))
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
 
             csv_data = _to_csv(pred_data)
             st.download_button("📥 Export Risk Assessments (CSV)", data=csv_data,
@@ -278,7 +277,7 @@ with clinical_tab:
                 "End Date": m.end_date or "—",
                 "Status": "Active" if m.is_active else "Stopped",
             } for m in all_meds]
-            st.dataframe(med_data, use_container_width=True)
+            st.dataframe(med_data, width="stretch")
 
             csv_data = _to_csv(med_data)
             st.download_button("📥 Export Medications (CSV)", data=csv_data,
@@ -295,7 +294,7 @@ with clinical_tab:
                 "Total Doses": a["total_logs"],
                 "Taken": a["taken_count"],
                 "Adherence Rate": f"{a['adherence_rate']}%",
-            } for a in adherence], use_container_width=True)
+            } for a in adherence], width="stretch")
         else:
             st.info("No medication logs yet.")
 
@@ -313,7 +312,7 @@ with clinical_tab:
                 "Created": a["created_at"],
                 "Resolved": a["resolved_at"] or "—",
             } for a in all_alerts]
-            st.dataframe(alert_data, use_container_width=True)
+            st.dataframe(alert_data, width="stretch")
 
             csv_data = _to_csv(alert_data)
             st.download_button("📥 Export Alerts (CSV)", data=csv_data,
@@ -335,7 +334,7 @@ with clinical_tab:
                     "Date": n["created_at"],
                 })
         if all_notes:
-            st.dataframe(all_notes, use_container_width=True)
+            st.dataframe(all_notes, width="stretch")
             csv_data = _to_csv(all_notes)
             st.download_button("📥 Export Clinical Notes (CSV)", data=csv_data,
                                file_name=f"clinical_notes_{date.today()}.csv", mime="text/csv")
@@ -366,7 +365,7 @@ with operations_tab:
                 "Status": a.status.title(),
             })
     if all_appts:
-        st.dataframe(all_appts, use_container_width=True)
+        st.dataframe(all_appts, width="stretch")
         csv_data = _to_csv(all_appts)
         st.download_button("📥 Export Appointments (CSV)", data=csv_data,
                            file_name=f"appointments_{date.today()}.csv", mime="text/csv")
@@ -384,7 +383,7 @@ with operations_tab:
             "Action": log["action"],
             "Details": log["details"],
         } for log in audit_logs]
-        st.dataframe(audit_data, use_container_width=True)
+        st.dataframe(audit_data, width="stretch")
 
         csv_data = _to_csv(audit_data)
         st.download_button("📥 Export Audit Log (CSV)", data=csv_data,
@@ -407,7 +406,7 @@ with export_tab:
         default=["Patient Directory", "All Vitals"],
     )
 
-    if st.button("📥 Generate Export Package", use_container_width=True):
+    if st.button("📥 Generate Export Package", width="stretch"):
         files = {}
 
         if "Patient Directory" in export_options:

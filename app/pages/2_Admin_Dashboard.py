@@ -11,7 +11,7 @@ from app.core.security import SessionManager
 from app.core.exceptions import ValidationError, DuplicateRecordError
 from app.services.admin_service import AdminService
 from app.database.repositories.session_repository import SessionRepository
-from app.utils.custom_css import apply_theme, profile_widget, stat_tiles, notification_bell
+from app.utils.custom_css import apply_theme, profile_widget, stat_tiles, notification_bell, page_header
 
 st.set_page_config(page_title="Admin Dashboard", page_icon="🛠️", layout="wide")
 apply_theme()
@@ -30,8 +30,7 @@ stat_tiles([
     {"label": "Users",    "value": stats["doctor_count"] + stats["patient_count"] + stats["admin_count"]},
 ])
 
-st.title("🛠️ Admin Dashboard")
-st.caption(f"System overview — logged in as {user['full_name']}")
+st.markdown(page_header("🛠️", "Admin Dashboard", f"System overview — logged in as {user['full_name']}"), unsafe_allow_html=True)
 
 overview_tab, users_tab, provision_tab, register_tab, audit_tab, system_tab, sessions_tab, doctor_monitor_tab, bulk_tab = st.tabs([
     "📊 Overview", "👥 Users", "🩺 Add Doctor", "🏥 Add Patient",
@@ -58,7 +57,7 @@ with overview_tab:
         )])
         fig.update_layout(margin=dict(t=10,b=10), height=260,
                           legend=dict(font=dict(size=11)))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     with c2:
         st.subheader("Open alerts by severity")
@@ -75,7 +74,7 @@ with overview_tab:
             )])
             fig2.update_layout(margin=dict(t=10,b=10), height=260,
                                showlegend=False)
-            st.plotly_chart(fig2, use_container_width=True)
+            st.plotly_chart(fig2, width="stretch")
 
     st.subheader("System health")
     h1, h2, h3 = st.columns(3)
@@ -135,7 +134,7 @@ with provision_tab:
         with c2:
             specialization = st.text_input("Specialization",        placeholder="e.g. Cardiology")
             license_number = st.text_input("Medical License Number",placeholder="e.g. LIC-1003")
-        if st.form_submit_button("Create Doctor Account ✅", use_container_width=True):
+        if st.form_submit_button("Create Doctor Account ✅", width="stretch"):
             try:
                 new_doc = admin_service.provision_doctor(
                     full_name=full_name, email=email, password=password,
@@ -177,7 +176,7 @@ with register_tab:
                 p_doctor = st.selectbox("Assign to Doctor", list(doctor_opts.keys()))
                 p_conds  = st.multiselect("Chronic Conditions", ["stroke","diabetes","hypertension"])
                 p_phone  = st.text_input("Phone Number (optional)")
-            if st.form_submit_button("Register Patient ✅", use_container_width=True):
+            if st.form_submit_button("Register Patient ✅", width="stretch"):
                 try:
                     from app.services.auth_service import AuthService
                     auth = AuthService()
@@ -205,7 +204,7 @@ with audit_tab:
             "User":    log.get("user_name") or "System",
             "Action":  log["action"],
             "Details": log["details"],
-        } for log in logs], use_container_width=True)
+        } for log in logs], width="stretch")
 
 # ── System Health ─────────────────────────────────────────────────
 with system_tab:
@@ -289,7 +288,7 @@ with sessions_tab:
                 "Last Activity": s.last_activity.strftime("%d %b %Y, %H:%M") if s.last_activity else "—",
             })
 
-        st.dataframe(session_data, use_container_width=True)
+        st.dataframe(session_data, width="stretch")
 
         st.markdown("---")
         c1, c2 = st.columns(2)
@@ -369,7 +368,7 @@ with doctor_monitor_tab:
                                 "Time": a.appointment_time,
                                 "Status": a.status.title(),
                                 "Severity": a.severity_level,
-                            } for a in doc_appts], use_container_width=True)
+                            } for a in doc_appts], width="stretch")
                         else:
                             st.info("No appointments booked yet.")
 
@@ -380,7 +379,7 @@ with doctor_monitor_tab:
                                 "Patient": n.get("patient_name", "—"),
                                 "Note": n["note"][:100],
                                 "Date": n["created_at"],
-                            } for n in doc_notes], use_container_width=True)
+                            } for n in doc_notes], width="stretch")
                         else:
                             st.info("No clinical notes written yet.")
 
@@ -392,7 +391,7 @@ with doctor_monitor_tab:
                                 "Severity": a["severity"].title(),
                                 "Message": a["message"][:80],
                                 "Status": a["status"].title(),
-                            } for a in doc_alerts], use_container_width=True)
+                            } for a in doc_alerts], width="stretch")
                         else:
                             st.success("No open alerts.")
 
@@ -421,7 +420,7 @@ with doctor_monitor_tab:
                 "Alerts Acknowledged": ack_alerts,
             })
         if summary_data:
-            st.dataframe(summary_data, use_container_width=True)
+            st.dataframe(summary_data, width="stretch")
 
 # ── Bulk Patient Import ──────────────────────────────────────────
 with bulk_tab:
@@ -454,7 +453,7 @@ with bulk_tab:
         st.info(f"Found {sum(1 for _ in reader)} rows in the CSV file.")
         reader = csv.DictReader(io.StringIO(content))
 
-        if st.button("📥 Import All Patients", use_container_width=True):
+        if st.button("📥 Import All Patients", width="stretch"):
             auth_service = AuthService()
             success_count = 0
             errors = []

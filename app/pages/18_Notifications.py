@@ -12,7 +12,7 @@ from app.core.security import SessionManager
 from app.database.repositories.alert_repository import AlertRepository
 from app.database.repositories.message_repository import MessageRepository
 from app.database.repositories.appointment_repository import AppointmentRepository
-from app.utils.custom_css import apply_theme, profile_widget, notification_bell
+from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 
 st.set_page_config(page_title="Notifications", page_icon="🔔", layout="wide")
 apply_theme()
@@ -25,8 +25,7 @@ if not user:
 profile_widget(user)
 notification_bell(user)
 
-st.title("🔔 Notifications")
-st.caption("All your alerts, messages, and updates in one place.")
+st.markdown(page_header("🔔", "Notifications", "All your alerts, messages, and updates in one place."), unsafe_allow_html=True)
 
 alert_repo = AlertRepository()
 msg_repo = MessageRepository()
@@ -45,6 +44,7 @@ if role == "doctor":
     for m in unread:
         notifications.append({
             "type": "message",
+            "id": m.id,
             "icon": "💬",
             "title": f"New message from {m.sender_name or 'Unknown'}",
             "detail": m.subject or "No subject",
@@ -59,6 +59,7 @@ elif role == "patient":
     for m in unread:
         notifications.append({
             "type": "message",
+            "id": m.id,
             "icon": "💬",
             "title": f"New message from {m.sender_name or 'Doctor'}",
             "detail": m.subject or "No subject",
@@ -124,13 +125,14 @@ else:
 
             # Mark as read button for messages
             if n["type"] == "message" and role in ("doctor", "patient"):
-                if st.button("Mark as Read", key=f"read_{n['time']}"):
+                if st.button("Mark as Read", key=f"read_{n['id']}"):
+                    msg_repo.mark_as_read(n["id"], user["id"])
                     st.rerun()
 
     # Mark all as read
     if role in ("doctor", "patient"):
         st.markdown("---")
-        if st.button("✅ Mark All Messages as Read", use_container_width=True):
+        if st.button("✅ Mark All Messages as Read", width="stretch"):
             for m in unread:
                 msg_repo.mark_as_read(m.id, user["id"])
             st.success("All messages marked as read.")

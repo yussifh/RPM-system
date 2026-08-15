@@ -17,7 +17,7 @@ from app.database.repositories.user_repository import UserRepository
 from app.database.repositories.prediction_repository import PredictionRepository
 from app.database.repositories.medication_repository import MedicationRepository
 from app.database.repositories.clinical_note_repository import ClinicalNoteRepository
-from app.utils.custom_css import apply_theme, profile_widget, notification_bell
+from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 from app.utils.date_utils import calculate_age
 
 st.set_page_config(page_title="My Profile", page_icon="👤", layout="wide")
@@ -41,6 +41,8 @@ notification_bell(user)
 initials = "".join([n[0].upper() for n in user["full_name"].split()[:2]])
 age = calculate_age(patient.date_of_birth)
 conditions = patient.chronic_conditions or []
+
+st.markdown(page_header("👤", "My Profile", "Personal info, medical profile, and account security."), unsafe_allow_html=True)
 
 st.markdown(f"""
 <div style="background:white;border:1px solid #DCE5E1;border-radius:14px;
@@ -94,7 +96,7 @@ with personal_tab:
                                        value=patient.emergency_contact or "",
                                        placeholder="e.g. Jane Mensah — +233 20 111 2222")
 
-        if st.form_submit_button("Save Changes", use_container_width=True):
+        if st.form_submit_button("Save Changes", width="stretch"):
             if not full_name or len(full_name.strip()) < 2:
                 st.error("Full name must be at least 2 characters.")
             else:
@@ -200,7 +202,7 @@ with summary_tab:
     st.divider()
 
     if history:
-        latest = history[0]
+        latest = history[-1]
         st.markdown("#### Latest Vitals")
         c1, c2, c3, c4, c5 = st.columns(5)
         c1.metric("Blood Pressure",
@@ -258,7 +260,7 @@ with security_tab:
                                 help="At least 8 characters with a letter and a number")
         confirm_pw = st.text_input("Confirm New Password", type="password")
 
-        if st.form_submit_button("Update Password", use_container_width=True):
+        if st.form_submit_button("Update Password", width="stretch"):
             if not current_pw or not new_pw or not confirm_pw:
                 st.error("All fields are required.")
             elif new_pw != confirm_pw:

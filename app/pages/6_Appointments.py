@@ -54,7 +54,7 @@ apply_theme()
 profile_widget(user)
 notification_bell(user)
 
-st.title(f"📅 Appointments{badge}")
+st.markdown(page_header("📅", "Appointments", f"Manage and track your appointments.{badge}"), unsafe_allow_html=True)
 
 _STATUS_COLORS = {
     "scheduled":  ("🔵", "#E7F0F7"),
@@ -217,7 +217,7 @@ if role == "doctor":
                     help="This message will be sent to the patient."
                 )
 
-                if st.form_submit_button("📅 Book Appointment", use_container_width=True):
+                if st.form_submit_button("📅 Book Appointment", width="stretch"):
                     if not reason.strip():
                         st.error("Please enter a reason for the appointment.")
                     else:
@@ -356,7 +356,7 @@ if role == "doctor":
                 "Severity":   a.severity_level,
                 "Status":     a.status.title(),
                 "Reason":     (a.reason or "")[:60],
-            } for a in past], use_container_width=True)
+            } for a in past], width="stretch")
 
 
 # ================================================================
@@ -463,7 +463,7 @@ elif role == "patient":
                             file_name=f"appointment_{appt.appointment_date}_{user['full_name'].replace(' ','_')}.txt",
                             mime="text/plain",
                             key=f"print_{appt.id}",
-                            use_container_width=True,
+                            width="stretch",
                         )
                     with pcol2:
                         appt_html = generate_appointment_html(appt, user["full_name"])
@@ -473,7 +473,7 @@ elif role == "patient":
                             file_name=f"appointment_{appt.appointment_date}_{user['full_name'].replace(' ','_')}.html",
                             mime="text/html",
                             key=f"html_{appt.id}",
-                            use_container_width=True,
+                            width="stretch",
                         )
                     with pcol3:
                         share_text = (
@@ -514,7 +514,7 @@ elif role == "patient":
                             file_name=f"appointment_{appt.appointment_date}_{user['full_name'].replace(' ','_')}.txt",
                             mime="text/plain",
                             key=f"print_past_{appt.id}",
-                            use_container_width=True,
+                            width="stretch",
                         )
                     with pcol2:
                         appt_html = generate_appointment_html(appt, user["full_name"])
@@ -524,7 +524,7 @@ elif role == "patient":
                             file_name=f"appointment_{appt.appointment_date}_{user['full_name'].replace(' ','_')}.html",
                             mime="text/html",
                             key=f"html_past_{appt.id}",
-                            use_container_width=True,
+                            width="stretch",
                         )
 
 

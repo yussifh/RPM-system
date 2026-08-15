@@ -63,7 +63,7 @@ if not missing_fields:
         <p style="font-size:14px;color:#5F717A;">All required fields are filled in.</p>
     </div>
     """, unsafe_allow_html=True)
-    if st.button("Go to Dashboard →", use_container_width=True):
+    if st.button("Go to Dashboard →", width="stretch"):
         st.switch_page("pages/4_Patient_Dashboard.py")
     st.stop()
 
@@ -108,7 +108,7 @@ with st.form("profile_completion_form"):
     )
 
     st.markdown("<br>", unsafe_allow_html=True)
-    submitted = st.form_submit_button("Save Profile ✅", use_container_width=True)
+    submitted = st.form_submit_button("Save Profile ✅", width="stretch")
 
     if submitted:
         if not conditions:
@@ -131,7 +131,7 @@ with st.form("profile_completion_form"):
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
-                if st.button("Go to Dashboard →", use_container_width=True):
+                if st.button("Go to Dashboard →", width="stretch"):
                     st.switch_page("pages/4_Patient_Dashboard.py")
 
             except ValidationError as e:

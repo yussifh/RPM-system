@@ -66,7 +66,7 @@ if step == 1:
             placeholder="admin@rpm.com",
         )
         submitted = st.form_submit_button(
-            "Generate OTP →", use_container_width=True
+            "Generate OTP →", width="stretch"
         )
 
         if submitted:
@@ -177,7 +177,7 @@ elif step == 2:
                 )
 
         submitted = st.form_submit_button(
-            "Reset Password ✅", use_container_width=True
+            "Reset Password ✅", width="stretch"
         )
 
         if submitted:
@@ -226,7 +226,7 @@ elif step == 3:
     </div>
     """, unsafe_allow_html=True)
 
-    if st.button("🔐 Go to Login Page →", use_container_width=True):
+    if st.button("🔐 Go to Login Page →", width="stretch"):
         st.session_state["otp_email_sent"]   = False
         st.session_state["otp_email"]        = ""
         st.session_state["otp_done"]         = False
