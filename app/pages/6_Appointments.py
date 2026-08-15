@@ -25,7 +25,7 @@ from app.database.repositories.appointment_repository import AppointmentReposito
 from app.database.repositories.message_repository import MessageRepository
 from app.database.repositories.patient_repository import PatientRepository
 from app.database.repositories.doctor_schedule_repository import DoctorScheduleRepository
-from app.utils.custom_css import apply_theme, profile_widget, notification_bell
+from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 
 # ── Session ──────────────────────────────────────────────────────
 user = SessionManager.get_current_user()

@@ -170,6 +170,18 @@ def pill(text: str, tone: str = "primary") -> str:
             f'display:inline-block;margin:4px;">{text}</span>')
 
 
+def material_icon(name: str) -> str:
+    """Normalize a Material Symbols icon reference to its bare name.
+
+    Accepts both ':material/name:' shortcodes and bare names ('name'),
+    so callers can use either style.
+    """
+    name = (name or "").strip()
+    if name.startswith(":material/") and name.endswith(":"):
+        name = name[len(":material/"):-1]
+    return name
+
+
 def feature_card(icon: str, title: str, description: str, accent: str = None) -> str:
     """Landing feature card with Material icon, title and description."""
     t = theme_tokens()
@@ -178,9 +190,9 @@ def feature_card(icon: str, title: str, description: str, accent: str = None) ->
     <div style="background:{t['surface']};border:1px solid {t['border']};border-top:3px solid {accent};
          border-radius:14px;padding:22px 20px;height:100%;
          box-shadow:0 1px 3px rgba(22,36,43,0.06);transition:transform .15s ease, box-shadow .15s ease;">
-        <div style="width:46px;height:46px;border-radius:12px;background:{t['tint_primary']};
+        <div class="material-symbols-outlined" style="width:46px;height:46px;border-radius:12px;background:{t['tint_primary']};
              display:flex;align-items:center;justify-content:center;margin-bottom:12px;
-             font-size:24px;color:{accent};">{icon}</div>
+             font-size:24px;color:{accent};">{material_icon(icon)}</div>
         <h3 style="font-family:'Space Grotesk',sans-serif;color:{t['ink']};font-size:16px;
              font-weight:700;margin:0 0 8px;">{title}</h3>
         <p style="color:{t['muted']};font-size:13px;line-height:1.65;margin:0;">{description}</p>
@@ -247,7 +259,7 @@ def section_heading(icon: str, title: str, subtitle: str = "") -> str:
     return f"""
     <div style="margin:26px 0 16px;">
         <div style="display:flex;align-items:center;gap:10px;">
-            <span style="font-size:20px;color:{t['primary']};">{icon}</span>
+            <span class="material-symbols-outlined" style="font-size:20px;color:{t['primary']};">{material_icon(icon)}</span>
             <h2 style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;
                  color:{t['ink']};margin:0;letter-spacing:-.01em;">{title}</h2>
         </div>
@@ -467,12 +479,14 @@ def notification_bell(user: dict):
              padding:0 4px;font-family:'JetBrains Mono',monospace;">{total}</span>
         """
 
+    bell_icon = '<span class="material-symbols-outlined" style="font-size:20px;color:white;line-height:1;">notifications</span>'
+
     bell_html = f"""
     <div style="padding:6px 16px 10px;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:4px;">
         <div style="display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:8px;">
                 <div style="position:relative;display:inline-flex;">
-                    <span style="font-size:16px;">🔔</span>
+                    {bell_icon}
                     {badge_html}
                 </div>
                 <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.7);
@@ -484,7 +498,7 @@ def notification_bell(user: dict):
         </div>
     </div>
     """
-    st.sidebar.markdown(bell_html, unsafe_allow_html=True)
+    st.sidebar.html(bell_html)
 
     if total > 0:
         details = []

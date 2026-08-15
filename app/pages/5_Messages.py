@@ -19,7 +19,7 @@ from app.database.repositories.message_repository import MessageRepository
 from app.database.repositories.patient_repository import PatientRepository
 from app.database.repositories.doctor_repository import DoctorRepository
 from app.database.repositories.user_repository import UserRepository
-from app.utils.custom_css import apply_theme, profile_widget, notification_bell
+from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 
 # ── Session check ────────────────────────────────────────────────
 user = SessionManager.get_current_user()
