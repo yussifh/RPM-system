@@ -174,6 +174,20 @@ railway config apply --yes
 
 ---
 
+## Sleep / wake (save trial credit)
+
+- **Sleep (stop the app):** `railway down --service rpm-system --yes`
+  Removes the active deployment → no running replica, credit stops accruing.
+  The domain, service settings, env vars, and the MySQL database + volume are
+  all preserved.
+- **Wake (restart):** `railway redeploy --service rpm-system --from-source --yes`
+  Rebuilds from `main` and starts 1 replica (~1 min). The app returns at the
+  same URL with the same data.
+- Note: this shuts down only the **app** service. The MySQL plugin keeps
+  running (and keeps accruing trial usage while it runs).
+
+---
+
 ## Updating the deployed app
 
 - **Auto-deploy (recommended):** in the Railway dashboard, open the `rpm-system`
