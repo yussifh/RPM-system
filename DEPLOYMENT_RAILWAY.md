@@ -89,10 +89,13 @@ No `.env` file is needed — `app/core/config.py` reads these environment
 variables, and the container starts with:
 
 ```
-streamlit run app/main.py --server.port=${PORT:-8501} --server.address=0.0.0.0
+python -m streamlit run app/main.py --server.port=${PORT:-8501} --server.address=0.0.0.0
 ```
 
-`$PORT` is injected by Railway (the Dockerfile handles it).
+> `python -m streamlit` (not bare `streamlit`) is required: with a plain
+> `streamlit run app/main.py` the script dir (`/app/app`) becomes
+> `sys.path[0]`, so `from app.core... import` fails inside the container.
+> `$PORT` is injected by Railway (the Dockerfile handles it).
 
 ---
 
@@ -113,7 +116,10 @@ py -3.11 scripts/init_production_db.py \
 What it does (all idempotent-ish, safe to re-run on a fresh DB):
 
 1. Creates the target database if needed (`utf8mb4`).
-2. Applies `database/schema.sql` (drops + creates all 21 tables).
+2. Disables FK checks, then applies `database/schema.sql` (drops + creates
+   all 21 tables) and re-enables the checks. FK checks are turned off so
+   leftover/pre-existing tables (e.g. a template's `addresses` table with a
+   FK to `users`) can't block the DROPs.
 3. Seeds demo accounts **only if the `users` table is empty**:
    `admin@rpm.com/admin1234 · doctor@rpm.com/doctor1234 · patient@rpm.com/patient1234`.
 4. Creates the extra tables (`doctor_ratings`, `teleconsultations`,
@@ -135,6 +141,16 @@ What it does (all idempotent-ish, safe to re-run on a fresh DB):
 3. Recommended: enable the service **health check** with path
    `/_stcore/health` (Streamlit's built-in endpoint) so Railway restarts the
    app if it becomes unhealthy.
+
+---
+
+## Deployed status (this project)
+
+- **URL:** <a href="https://rpm-system-production.up.railway.app" target="_blank">https://rpm-system-production.up.railway.app</a>
+- **GitHub:** `https://github.com/yussifh/RPM-system` (branch `main`)
+- **Railway project:** `artistic-victory` · service `rpm-system` (Dockerfile) + managed MySQL
+- DB initialized (21 tables + demo accounts). Login verified with `patient@rpm.com`.
+- Redeploys on every push to `main`.
 
 ---
 
