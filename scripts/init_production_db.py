@@ -122,6 +122,10 @@ def main():
     )
 
     # -- schema.sql (destructive, intended for fresh DBs) -------------
+    # The database may contain pre-existing/foreign tables (e.g. platform
+    # starter schemas) whose FKs would block DROPs. Disable FK checks for
+    # the reset, so unknown child tables can't stop the rebuild.
+    run_statement(conn, "SET FOREIGN_KEY_CHECKS = 0")
     print("→ Removing migration tables (not covered by schema.sql DROPs) ...")
     for table in MIGRATION_TABLES:
         run_statement(conn, f"DROP TABLE IF EXISTS `{table}`")
@@ -129,6 +133,9 @@ def main():
     for stmt in split_statements(SCHEMA.read_text(encoding="utf-8")):
         run_statement(conn, stmt)
     print("✓ Schema applied")
+
+    # Re-enable FK enforcement now that the schema has been rebuilt.
+    run_statement(conn, "SET FOREIGN_KEY_CHECKS = 1")
 
     # -- seed_data.sql (only when there is nothing in the users table) --
     cur = conn.cursor(buffered=True)

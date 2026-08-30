@@ -21,8 +21,10 @@ COPY .streamlit ./.streamlit
 
 EXPOSE 8501
 
-# Railway injects $PORT (e.g. 10000). Streamlit needs to bind to it.
-CMD ["/bin/sh", "-c", "streamlit run app/main.py \
+# Railway injects $PORT (e.g. 80). Streamlit needs to bind to it.
+# Note: `python -m streamlit` (not bare `streamlit`) so that "/app" is on
+# sys.path and `from app.core...` imports resolve inside the container.
+CMD ["/bin/sh", "-c", "python -m streamlit run app/main.py \
     --server.port=${PORT:-8501} \
     --server.address=0.0.0.0 \
     --server.headless=true"]
