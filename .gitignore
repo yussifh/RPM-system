@@ -22,14 +22,18 @@ ENV/
 .idea/
 *.iml
 
-# --- ML Artifacts (large binaries, keep out of git unless intentional) ---
-app/ml/trained_models/*.pkl
-app/ml/trained_models/*.joblib
+# --- ML Artifacts ---
+# Trained models (app/ml/trained_models/*.joblib + *.json) are committed so
+# the deployed app works immediately without a training step. Raw training
+# datasets stay out of git.
 ml_training/datasets/*.csv
 
 # --- OS ---
 .DS_Store
 Thumbs.db
+
+# --- Dev screenshots (repo root) ---
+img_*.png
 
 # --- Logs ---
 *.log

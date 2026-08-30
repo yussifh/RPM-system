@@ -1,0 +1,32 @@
+# NEVER ship local secrets
+.env
+*.env.local
+.streamlit/secrets.toml
+
+# Version control / CI
+.git
+.github
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+venv/
+.venv/
+
+# App images & screenshots (dev artifacts, not needed at runtime)
+*.png
+*.jpg
+*.jpeg
+
+# ML training data (large CSVs — models ship, raw datasets do not)
+ml_training/datasets/*.csv
+
+# Docs & tests are not needed in the image (keeps it lean/secure)
+tests/
+docs/
+README.md
+retrain_models.py
+pytest_ver.txt
+package-lock.json
