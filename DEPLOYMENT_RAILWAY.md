@@ -150,7 +150,27 @@ What it does (all idempotent-ish, safe to re-run on a fresh DB):
 - **GitHub:** `https://github.com/yussifh/RPM-system` (branch `main`)
 - **Railway project:** `artistic-victory` · service `rpm-system` (Dockerfile) + managed MySQL
 - DB initialized (21 tables + demo accounts). Login verified with `patient@rpm.com`.
-- Redeploys on every push to `main`.
+- **Health check enabled** on the service: path `/_stcore/health` (Streamlit's
+  built-in endpoint) — confirmed 200 `ok`. Railway pings it for readiness and
+  restarts the app if it stops answering.
+
+### Health check / service settings (Infrastructure as Code)
+
+Railway now prefers **IaC** (`.railway/railway.ts`) over `railway.json`
+(Config as Code is deprecated, works until 2026-12-01). The service settings
+in this repo live in `.railway/railway.ts`:
+
+```
+npm install   # installs the `railway` SDK (devDependency)
+# Windows: the SDK must find the real CLI binary on process.env._ :
+#   $env:_ = "C:\Users\<you>\AppData\Roaming\npm\node_modules\@railway\cli\bin\railway.exe"
+railway config plan    # review (must show "0 to destroy")
+railway config apply --yes
+```
+
+`.railway/` contains live secrets (DB password, APP_SECRET_KEY) and is
+**gitignored** — never commit it. After cloning, recreate it with
+`railway config migrate` and re-apply.
 
 ---
 
