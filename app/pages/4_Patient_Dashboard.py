@@ -16,9 +16,9 @@ from app.database.repositories.consent_repository import ConsentRepository
 from app.database.repositories.alert_repository import AlertRepository
 from app.database.repositories.appointment_repository import AppointmentRepository
 from app.utils.visualizations import build_blood_pressure_chart, build_single_metric_chart
-from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header, vital_card
+from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header, vital_card, theme_tokens
 
-st.set_page_config(page_title="Patient Dashboard", page_icon="🧑‍⚕️", layout="wide")
+st.set_page_config(page_title="Patient Dashboard", page_icon=":material/person:", layout="wide")
 apply_theme()
 
 user = SessionManager.require_role("patient")
@@ -34,11 +34,12 @@ health_score_svc   = HealthScoreService()
 
 # ── Consent Check ─────────────────────────────────────────────────
 if not consent_repo.has_consent(user["id"]):
-    st.markdown("""
+    t = theme_tokens()
+    st.markdown(f"""
     <div style="text-align:center;padding:24px 0 16px;">
-        <div style="width:14px;height:14px;border-radius:50%;background:#B8761D;margin:0 auto 12px;"></div>
-        <h1 style="font-size:22px;font-weight:800;color:#16242B;margin:0;">Patient Consent Required</h1>
-        <p style="font-size:13px;color:#5F717A;margin:6px 0 0;">
+        <div style="width:14px;height:14px;border-radius:50%;background:{t['amber']};margin:0 auto 12px;"></div>
+        <h1 style="font-size:22px;font-weight:800;color:{t['ink']};margin:0;">Patient Consent Required</h1>
+        <p style="font-size:13px;color:{t['muted']};margin:6px 0 0;">
             Before you can use the RPM System, please review and accept the monitoring consent.
         </p>
     </div>
@@ -79,13 +80,13 @@ if not consent_repo.has_consent(user["id"]):
             key="consent_checkbox"
         )
 
-        if st.button("✅ Submit Consent", width="stretch"):
+        if st.button(":material/check_circle: Submit Consent", width="stretch"):
             if consent_text:
                 consent_repo.grant_consent(
                     patient_id=user["id"],
                     consent_text="Patient consented to remote monitoring via web interface.",
                 )
-                st.success("✅ Consent recorded. Redirecting to your dashboard...")
+                st.success(":material/check_circle: Consent recorded. Redirecting to your dashboard...")
                 st.rerun()
             else:
                 st.error("Please check the consent checkbox to proceed.")
@@ -102,13 +103,13 @@ st.sidebar.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown(page_header("🧑‍⚕️", "Patient Dashboard", f"Welcome back, {user['full_name']}"), unsafe_allow_html=True)
+st.markdown(page_header(":material/person:", "Patient Dashboard", f"Welcome back, {user['full_name']}"), unsafe_allow_html=True)
 
-_RISK_COLORS = {"low":"🟢","medium":"🟡","high":"🟠","critical":"🔴"}
+_RISK_COLORS = {"low":"[LOW]","medium":"[MEDIUM]","high":"[HIGH]","critical":"[CRITICAL]"}
 
 health_tab, submit_tab, history_tab, risk_tab, report_tab, vitals_chart_tab, timeline_tab = st.tabs([
-    "🏥 Health Score", "📝 Submit Vitals", "📈 My History", "🤖 AI Risk History",
-    "📄 Download Report", "📊 Vitals Overview", "📅 Health Timeline"
+    ":material/local_hospital: Health Score", ":material/edit_note: Submit Vitals", ":material/trending_up: My History", ":material/psychology: AI Risk History",
+    ":material/description: Download Report", ":material/bar_chart: Vitals Overview", ":material/calendar_month: Health Timeline"
 ])
 
 # ── Submit Vitals ─────────────────────────────────────────────────
@@ -128,30 +129,30 @@ with submit_tab:
             height_cm          = st.number_input("Height (cm)",             min_value=0.0, max_value=250.0, value=0.0, step=0.5)
         symptoms = st.text_area("Symptoms (optional)", placeholder="e.g. mild headache, dizziness...")
         notes    = st.text_area("Additional Notes (optional)")
-        submitted = st.form_submit_button("Submit Reading ✅", width="stretch")
+        submitted = st.form_submit_button("Submit Reading :material/check_circle:", width="stretch")
 
         if submitted:
             def nz(v): return None if v == 0 else v
 
             warnings = []
             if systolic_bp > 0 and systolic_bp >= 140:
-                warnings.append("⚠️ High systolic blood pressure (≥140 mmHg)")
+                warnings.append(":material/warning: High systolic blood pressure (≥140 mmHg)")
             if diastolic_bp > 0 and diastolic_bp >= 90:
-                warnings.append("⚠️ High diastolic blood pressure (≥90 mmHg)")
+                warnings.append(":material/warning: High diastolic blood pressure (≥90 mmHg)")
             if heart_rate > 0 and (heart_rate < 60 or heart_rate > 100):
-                warnings.append(f"⚠️ Abnormal heart rate ({heart_rate} bpm)")
+                warnings.append(f":material/warning: Abnormal heart rate ({heart_rate} bpm)")
             if oxygen_saturation > 0 and oxygen_saturation < 95:
-                warnings.append(f"⚠️ Low oxygen saturation ({oxygen_saturation}%)")
+                warnings.append(f":material/warning: Low oxygen saturation ({oxygen_saturation}%)")
             if temperature_c > 0 and temperature_c > 37.5:
-                warnings.append(f"⚠️ Elevated temperature ({temperature_c}°C)")
+                warnings.append(f":material/warning: Elevated temperature ({temperature_c}°C)")
             if glucose_level > 0 and glucose_level > 140:
-                warnings.append(f"⚠️ High glucose level ({glucose_level} mg/dL)")
+                warnings.append(f":material/warning: High glucose level ({glucose_level} mg/dL)")
             for w in warnings: st.warning(w)
 
             if height_cm > 0 and weight_kg > 0:
                 bmi = weight_kg / ((height_cm/100)**2)
                 cat = ("Underweight" if bmi<18.5 else "Normal weight" if bmi<25 else "Overweight" if bmi<30 else "Obese")
-                st.info(f"📊 BMI: **{bmi:.1f}** ({cat})")
+                st.info(f":material/bar_chart: BMI: **{bmi:.1f}** ({cat})")
 
             try:
                 result = monitoring_service.submit_vitals_and_assess(
@@ -162,32 +163,32 @@ with submit_tab:
                     oxygen_saturation=nz(oxygen_saturation),
                     symptoms=symptoms, notes=notes,
                 )
-                st.success(f"✅ Reading submitted at {result['vitals'].recorded_at}")
+                st.success(f":material/check_circle: Reading submitted at {result['vitals'].recorded_at}")
 
                 severity = result.get("severity_report")
                 if severity:
                     from app.ml.severity_engine import SEVERITY_COLORS
                     sev_level = severity.overall_severity
                     if sev_level == "critical":
-                        st.error("🚨 **CRITICAL** — Your doctor has been alerted immediately!")
+                        st.error(":material/warning: **CRITICAL** — Your doctor has been alerted immediately!")
                     elif sev_level == "severe":
-                        st.error("🔴 **SEVERE** — Your doctor has been notified urgently.")
+                        st.error(":material/cancel: **SEVERE** — Your doctor has been notified urgently.")
                     elif sev_level == "moderate":
-                        st.warning("🟠 **MODERATE** — Your doctor has been notified.")
+                        st.warning(":material/warning: **MODERATE** — Your doctor has been notified.")
                     elif sev_level == "mild":
-                        st.warning("🟡 **MILD** — Please monitor your condition.")
+                        st.warning(":material/warning: **MILD** — Please monitor your condition.")
                     else:
-                        st.success("🟢 **NORMAL** — Your readings look stable.")
+                        st.success(":material/check_circle: **NORMAL** — Your readings look stable.")
                     if severity.flags:
                         with st.expander(f"{severity.icon} View detailed assessment ({len(severity.flags)} findings)"):
                             for flag in severity.flags:
                                 icon = SEVERITY_COLORS.get(flag.severity,"⚪")
                                 st.write(f"{icon} **{flag.parameter}** ({flag.value}): {flag.message}")
                     if severity.should_alert_doctor:
-                        st.info("📨 Your doctor has been sent an alert message automatically.")
+                        st.info(":material/send: Your doctor has been sent an alert message automatically.")
 
                 if result["predictions"]:
-                    st.subheader("🤖 AI chronic disease risk")
+                    st.subheader(":material/psychology: AI chronic disease risk")
                     cols = st.columns(len(result["predictions"]))
                     for col, pred in zip(cols, result["predictions"]):
                         icon = _RISK_COLORS.get(pred["risk_level"],"⚪")
@@ -236,7 +237,7 @@ with history_tab:
 
 # ── AI Risk History ───────────────────────────────────────────────
 with risk_tab:
-    st.subheader("🤖 AI risk assessment history")
+    st.subheader(":material/psychology: AI risk assessment history")
     try:
         diseases  = ["stroke","diabetes","hypertension"]
         found_any = False
@@ -260,7 +261,6 @@ with risk_tab:
                 icon = _RISK_COLORS.get(latest_pred.risk_level,"⚪")
                 st.write(f"**Latest {disease.title()} Risk:** {icon} {latest_pred.risk_level.upper()} "
                          f"({float(latest_pred.risk_score):.0%} probability)")
-                st.divider()
             except Exception:
                 pass
         if not found_any:
@@ -270,10 +270,10 @@ with risk_tab:
 
 # ── Download Report ───────────────────────────────────────────────
 with report_tab:
-    st.subheader("📄 Download your health report")
+    st.subheader(":material/description: Download your health report")
     c1, c2 = st.columns(2)
     with c1: report_format = st.selectbox("Format", ["PDF (.pdf)", "Text (.txt)", "CSV (.csv)"])
-    if st.button("📥 Generate & Download Report", width="stretch"):
+    if st.button(":material/inbox: Generate & Download Report", width="stretch"):
         history = vitals_service.get_history(user["id"], limit=100)
         if not history:
             st.warning("No vitals data to include in report.")
@@ -287,7 +287,7 @@ with report_tab:
                 for r in history:
                     writer.writerow([r.recorded_at,r.systolic_bp,r.diastolic_bp,r.heart_rate,
                                      r.glucose_level,r.weight_kg,r.oxygen_saturation,r.temperature_c,r.symptoms])
-                st.download_button("⬇️ Download CSV Report", data=output.getvalue(),
+                st.download_button(":material/inbox: Download CSV Report", data=output.getvalue(),
                     file_name=f"health_report_{user['full_name'].replace(' ','_')}.csv", mime="text/csv")
             elif report_format == "PDF (.pdf)":
                 from app.utils.pdf_generator import generate_health_report_pdf
@@ -331,7 +331,7 @@ with report_tab:
                         medications=meds if meds else None,
                         summary_stats=summary_stats,
                     )
-                    st.download_button("⬇️ Download PDF Report", data=pdf_bytes,
+                    st.download_button(":material/inbox: Download PDF Report", data=pdf_bytes,
                         file_name=f"health_report_{user['full_name'].replace(' ','_')}.pdf", mime="application/pdf")
                 except Exception as e:
                     st.error(f"Could not generate PDF: {e}")
@@ -349,13 +349,13 @@ with report_tab:
                     if r.temperature_c: lines.append(f"  Temperature: {float(r.temperature_c):.1f}°C")
                     if r.symptoms: lines.append(f"  Symptoms: {r.symptoms}")
                 lines += ["","="*60,"DISCLAIMER: This is a decision-support tool only.","="*60]
-                st.download_button("⬇️ Download Text Report", data="\n".join(lines),
+                st.download_button(":material/inbox: Download Text Report", data="\n".join(lines),
                     file_name=f"health_report_{user['full_name'].replace(' ','_')}.txt", mime="text/plain")
-            st.success("✅ Report ready!")
+            st.success(":material/check_circle: Report ready!")
 
 # ── Comprehensive Vitals Overview ────────────────────────────────
 with vitals_chart_tab:
-    st.subheader("📊 Comprehensive Vitals Overview")
+    st.subheader("Vitals overview")
     history_all = vitals_service.get_history(user["id"], limit=100)
     if not history_all:
         st.info("No vitals submitted yet. Submit a reading to see trend charts.")
@@ -369,8 +369,6 @@ with vitals_chart_tab:
         m4.markdown(vital_card("Glucose", f"{float(latest.glucose_level):.0f}" if latest.glucose_level else "—", "mg/dL", tone="amber"), unsafe_allow_html=True)
         m5.markdown(vital_card("SpO2", f"{latest.oxygen_saturation or '—'}", "%"), unsafe_allow_html=True)
         m6.markdown(vital_card("Temp", f"{float(latest.temperature_c):.1f}" if latest.temperature_c else "—", "°C"), unsafe_allow_html=True)
-
-        st.markdown("---")
 
         # Blood Pressure chart
         bp_records = [r for r in history_all if r.systolic_bp and r.diastolic_bp]
@@ -409,7 +407,7 @@ with vitals_chart_tab:
                         st.info(f"No {title.lower()} data recorded yet.")
 
         # Full vitals table
-        with st.expander("📋 Full Vitals History Table", expanded=False):
+        with st.expander(":material/table_chart: Full Vitals History Table", expanded=False):
                 st.dataframe([{
                 "Date": r.recorded_at,
                 "Systolic": r.systolic_bp,
@@ -423,8 +421,7 @@ with vitals_chart_tab:
             } for r in reversed(history_all)], width="stretch")
 
         # Auto-refresh section
-        st.markdown("---")
-        auto_refresh = st.checkbox("🔄 Auto-refresh every 60 seconds", key="patient_auto_refresh")
+        auto_refresh = st.checkbox("Auto-refresh every 60 seconds", key="patient_auto_refresh")
         if auto_refresh:
             import time
             time.sleep(60)
@@ -432,7 +429,7 @@ with vitals_chart_tab:
 
 # ── Health Score ─────────────────────────────────────────────────
 with health_tab:
-    st.subheader("🏥 Your Health Score")
+    st.subheader("Your health score")
 
     history_score = vitals_service.get_history(user["id"], limit=5)
     latest_vitals = history_score[-1] if history_score else None
@@ -468,35 +465,37 @@ with health_tab:
     # Score display
     c1, c2, c3 = st.columns([2, 1, 1])
     with c1:
+        t = theme_tokens()
         score = result["score"]
         color = result["color"]
         st.markdown(f"""
-        <div style="text-align:center;background:white;border:2px solid {color};
+        <div style="text-align:center;background:{t['surface']};border:2px solid {color};
              border-radius:16px;padding:32px 20px;">
             <div style="font-size:64px;font-weight:800;color:{color};
                  font-family:monospace;line-height:1;">{score}</div>
             <div style="font-size:16px;font-weight:600;color:{color};margin-top:4px;">
                 {result['grade']}
             </div>
-            <div style="font-size:11px;color:#5F717A;margin-top:4px;">
+            <div style="font-size:11px;color:{t['muted']};margin-top:4px;">
                 out of 100
             </div>
         </div>
         """, unsafe_allow_html=True)
 
     with c2:
+        t = theme_tokens()
         st.markdown("**Score Breakdown**")
         for key, val in result["breakdown"].items():
             label = {"bp": "Blood Pressure", "hr": "Heart Rate", "glucose": "Glucose",
                      "spo2": "SpO2", "temp": "Temperature", "bmi": "BMI",
                      "adherence": "Med Adherence", "risk": "AI Risk"}.get(key, key)
-            bar_color = "#0E7A5C" if val >= 70 else "#B8761D" if val >= 40 else "#C73E3A"
+            bar_color = t['primary'] if val >= 70 else t['amber'] if val >= 40 else t['alert']
             st.markdown(f"""
             <div style="margin-bottom:6px;">
                 <div style="display:flex;justify-content:space-between;font-size:11px;">
                     <span>{label}</span><span style="font-weight:600;">{val}</span>
                 </div>
-                <div style="background:#DCE5E1;border-radius:4px;height:6px;">
+                <div style="background:{t['border']};border-radius:4px;height:6px;">
                     <div style="background:{bar_color};width:{val}%;height:6px;border-radius:4px;"></div>
                 </div>
             </div>
@@ -509,16 +508,16 @@ with health_tab:
 
 # ── Health Timeline ──────────────────────────────────────────────
 with timeline_tab:
-    st.subheader("📅 Your Health Timeline")
+    st.subheader("Your health timeline")
     st.caption("A chronological view of all health events")
 
     timeline_events = []
 
     # Add vitals events
     for v in vitals_service.get_history(user["id"], limit=20):
-        sev = "🟢"
-        if v.systolic_bp and v.systolic_bp >= 140: sev = "🟠"
-        if v.systolic_bp and v.systolic_bp >= 180: sev = "🔴"
+        sev = "[NORMAL]"
+        if v.systolic_bp and v.systolic_bp >= 140: sev = "[ELEVATED]"
+        if v.systolic_bp and v.systolic_bp >= 180: sev = "[CRITICAL]"
         bp_str = f"{v.systolic_bp}/{v.diastolic_bp}" if v.systolic_bp and v.diastolic_bp else "—"
         timeline_events.append({
             "date": v.recorded_at,
@@ -530,7 +529,7 @@ with timeline_tab:
 
     # Add alert events
     for a in alert_repo.list_for_patient(user["id"], limit=10):
-        icon = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢"}.get(a.severity, "⚪")
+        icon = {"critical": "[CRITICAL]", "high": "[HIGH]", "medium": "[MEDIUM]", "low": "[LOW]"}.get(a.severity, "[NONE]")
         timeline_events.append({
             "date": a.created_at,
             "type": "Alert",
@@ -541,7 +540,7 @@ with timeline_tab:
 
     # Add appointment events
     for appt in appt_repo.get_for_patient(user["id"], upcoming_only=False)[:10]:
-        status_icon = {"scheduled": "🔵", "completed": "✅", "cancelled": "❌"}.get(appt.status, "⚪")
+        status_icon = {"scheduled": "[SCHEDULED]", "completed": "[COMPLETED]", "cancelled": "[CANCELLED]"}.get(appt.status, "[NONE]")
         timeline_events.append({
             "date": appt.created_at or appt.appointment_date,
             "type": "Appointment",
@@ -566,8 +565,8 @@ with timeline_tab:
                     st.caption(event["details"])
                 with c3:
                     date_str = event["date"].strftime("%d %b %Y, %H:%M") if hasattr(event["date"], "strftime") else str(event["date"])[:16]
-                    st.caption(f"📅 {date_str}")
-                    st.caption(f"📂 {event['type']}")
+                    st.caption(f":material/calendar_month: {date_str}")
+                    st.caption(f":material/folder: {event['type']}")
 
 if st.button("Log Out"):
     SessionManager.logout(); st.rerun()

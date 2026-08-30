@@ -9,7 +9,7 @@ from app.services.otp_service import OTPService
 from app.core.exceptions import ValidationError
 from app.utils.custom_css import apply_theme
 
-st.set_page_config(page_title="Reset Password", page_icon="🔑", layout="centered")
+st.set_page_config(page_title="Reset Password", page_icon=":material/key:", layout="centered")
 apply_theme()
 
 otp_service = OTPService()
@@ -82,8 +82,8 @@ if step == 1:
                     st.session_state["otp_generated_at"] = time.time()
                     st.session_state["otp_attempts"]     = 0
 
-                    st.success("✅ If this email is registered, a One Time PIN has been sent.")
-                    st.info(f"📧 Check your inbox at **{email.strip()}** — the OTP expires in 10 minutes.")
+                    st.success("If this email is registered, a One Time PIN has been sent.")
+                    st.info(f"Check your inbox at **{email.strip()}** — the OTP expires in 10 minutes.")
                 else:
                     # Email not found or SMTP not configured — same generic message
                     st.info("If your email is registered, check your inbox. Otherwise contact admin.")
@@ -107,13 +107,13 @@ elif step == 2:
             <div style="background:white;border:1px solid #DCE5E1;border-radius:8px;
                  padding:10px 16px;display:flex;align-items:center;
                  justify-content:space-between;margin-bottom:16px;">
-                <span style="font-size:13px;color:#5F717A;">⏱️ OTP expires in:</span>
+                <span style="font-size:13px;color:#5F717A;">OTP expires in:</span>
                 <span style="font-size:18px;font-weight:700;color:{color};
                       font-family:monospace;">{mins:02d}:{secs:02d}</span>
             </div>
             """, unsafe_allow_html=True)
         else:
-            st.error("⏰ Your OTP has expired. Please request a new one.")
+            st.error("Your OTP has expired. Please request a new one.")
             if st.button("← Request New OTP"):
                 st.session_state["otp_email_sent"]   = False
                 st.session_state["otp_email"]        = ""
@@ -122,14 +122,14 @@ elif step == 2:
             st.stop()
 
     # Show OTP reminder
-    st.info(f"📧 Resetting password for: **{st.session_state['otp_email']}**")
+    st.info(f"Resetting password for: **{st.session_state['otp_email']}**")
 
     # Attempt counter warning
     attempts = st.session_state["otp_attempts"]
     if attempts > 0:
         remaining_attempts = OTPService.MAX_ATTEMPTS - attempts
         if remaining_attempts <= 0:
-            st.error("❌ Too many failed attempts. Please request a new OTP.")
+            st.error("Too many failed attempts. Please request a new OTP.")
             if st.button("← Request New OTP"):
                 st.session_state["otp_email_sent"]   = False
                 st.session_state["otp_email"]        = ""
@@ -138,7 +138,7 @@ elif step == 2:
                 st.rerun()
             st.stop()
         else:
-            st.warning(f"⚠️ {attempts} failed attempt(s). {remaining_attempts} remaining.")
+            st.warning(f"{attempts} failed attempt(s). {remaining_attempts} remaining.")
 
     with st.form("reset_form"):
         otp_input = st.text_input(
@@ -166,7 +166,7 @@ elif step == 2:
             long_enough = len(new_password) >= 8
             strength = sum([has_letter, has_digit, long_enough])
             colors = ["#C73E3A", "#B8761D", "#0E7A5C"]
-            labels = ["Weak ❌", "Fair ⚠️", "Strong ✅"]
+            labels = ["Weak", "Fair", "Strong"]
             if strength > 0:
                 st.markdown(
                     f'<div style="background:{colors[strength-1]};color:white;'
@@ -177,14 +177,14 @@ elif step == 2:
                 )
 
         submitted = st.form_submit_button(
-            "Reset Password ✅", width="stretch"
+            "Reset password", width="stretch"
         )
 
         if submitted:
             if len(otp_input.strip()) != 6 or not otp_input.strip().isdigit():
                 st.error("Please enter a valid 6-digit OTP.")
             elif new_password != confirm_password:
-                st.error("❌ Passwords do not match.")
+                st.error("Passwords do not match.")
             else:
                 try:
                     success = otp_service.verify_and_reset(
@@ -213,7 +213,7 @@ elif step == 2:
 elif step == 3:
     st.markdown("""
     <div style="text-align:center;padding:40px 20px;">
-        <div style="font-size:72px;margin-bottom:16px;">✅</div>
+        <div class="material-symbols-outlined" style="font-size:72px;margin-bottom:16px;">check_circle</div>
         <h2 style="color:#0A5E46;font-size:26px;font-weight:800;margin:0 0 10px;">
             Password Reset Successfully!
         </h2>
@@ -226,7 +226,7 @@ elif step == 3:
     </div>
     """, unsafe_allow_html=True)
 
-    if st.button("🔐 Go to Login Page →", width="stretch"):
+    if st.button(":material/lock: Go to login page →", width="stretch"):
         st.session_state["otp_email_sent"]   = False
         st.session_state["otp_email"]        = ""
         st.session_state["otp_done"]         = False
@@ -234,5 +234,4 @@ elif step == 3:
         st.session_state["otp_attempts"]     = 0
         st.switch_page("pages/1_Login.py")
 
-st.divider()
-st.caption("⚠️ Academic demonstration only — not a certified medical system.")
+st.caption("Academic demonstration only — not a certified medical system.")

@@ -11,7 +11,7 @@ from app.database.repositories.user_repository import UserRepository
 from app.database.repositories.doctor_repository import DoctorRepository
 from app.utils.custom_css import apply_theme, profile_widget
 
-st.set_page_config(page_title="Complete Your Profile", page_icon="📋", layout="centered")
+st.set_page_config(page_title="Complete Your Profile", page_icon=":material/task:", layout="centered")
 apply_theme()
 
 user = SessionManager.require_role("patient")
@@ -74,7 +74,7 @@ doctor_options = {"— No Doctor —": None}
 doctor_options.update({f"Dr. {d.specialization or 'General'} (Lic: {d.license_number})": d.user_id for d in doctors})
 
 with st.form("profile_completion_form"):
-    st.subheader("📋 Personal Information")
+    st.subheader(":material/task: Personal Information")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -108,7 +108,7 @@ with st.form("profile_completion_form"):
     )
 
     st.markdown("<br>", unsafe_allow_html=True)
-    submitted = st.form_submit_button("Save Profile ✅", width="stretch")
+    submitted = st.form_submit_button("Save Profile :material/check_circle:", width="stretch")
 
     if submitted:
         if not conditions:
@@ -122,7 +122,7 @@ with st.form("profile_completion_form"):
                 patient_repo.update_conditions(user["id"], conditions)
                 patient_repo.update_emergency_contact(user["id"], emergency_contact or None)
 
-                st.success("✅ Profile updated successfully!")
+                st.success(":material/check_circle: Profile updated successfully!")
                 st.balloons()
                 st.markdown("""
                 <div style="text-align:center;padding:20px;">
@@ -140,4 +140,4 @@ with st.form("profile_completion_form"):
                 st.error(f"Error updating profile: {e}")
 
 st.divider()
-st.caption("⚠️ Complete profile helps your doctor provide better care.")
+st.caption(":material/warning: Complete profile helps your doctor provide better care.")

@@ -17,10 +17,10 @@ from app.database.repositories.user_repository import UserRepository
 from app.database.repositories.prediction_repository import PredictionRepository
 from app.database.repositories.medication_repository import MedicationRepository
 from app.database.repositories.clinical_note_repository import ClinicalNoteRepository
-from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
+from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header, theme_tokens
 from app.utils.date_utils import calculate_age
 
-st.set_page_config(page_title="My Profile", page_icon="👤", layout="wide")
+st.set_page_config(page_title="My Profile", page_icon=":material/person:", layout="wide")
 apply_theme()
 
 user = SessionManager.require_role("patient")
@@ -37,33 +37,35 @@ patient = patient_repo.get_by_user_id(user["id"])
 profile_widget(user)
 notification_bell(user)
 
+t = theme_tokens()
+
 # ── Profile Header ─────────────────────────────────────────────
 initials = "".join([n[0].upper() for n in user["full_name"].split()[:2]])
 age = calculate_age(patient.date_of_birth)
 conditions = patient.chronic_conditions or []
 
-st.markdown(page_header("👤", "My Profile", "Personal info, medical profile, and account security."), unsafe_allow_html=True)
+st.markdown(page_header(":material/person:", "My Profile", "Personal info, medical profile, and account security."), unsafe_allow_html=True)
 
 st.markdown(f"""
-<div style="background:white;border:1px solid #DCE5E1;border-radius:14px;
+<div style="background:{t['surface']};border:1px solid {t['border']};border-radius:14px;
      padding:28px 32px;display:flex;align-items:center;gap:24px;
      margin-bottom:20px;">
-    <div style="width:72px;height:72px;border-radius:50%;background:#0E7A5C;
-         color:white;display:flex;align-items:center;justify-content:center;
+    <div style="width:72px;height:72px;border-radius:50%;background:{t['primary']};
+         color:{t['primary_ink']};display:flex;align-items:center;justify-content:center;
          font-weight:800;font-size:26px;flex-shrink:0;font-family:monospace;">
         {initials}
     </div>
     <div>
-        <div style="font-size:22px;font-weight:700;color:#16242B;">
+        <div style="font-size:22px;font-weight:700;color:{t['ink']};">
             {user['full_name']}
         </div>
-        <div style="font-size:13px;color:#5F717A;margin-top:2px;">
+        <div style="font-size:13px;color:{t['muted']};margin-top:2px;">
             {user['email']} &bull; {patient.gender.title()} &bull; Age {age}
         </div>
         <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
-            <span style="background:#E7F4EF;color:#0A5E46;font-size:11px;font-weight:600;
+            <span style="background:{t['tint_primary']};color:{t['primary']};font-size:11px;font-weight:600;
                  padding:3px 10px;border-radius:20px;">Patient</span>
-            {"".join(f'<span style="background:#FBF3E4;color:#B8761D;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;">{c.title()}</span>' for c in conditions)}
+            {"".join(f'<span style="background:{t["tint_amber"]};color:{t["amber"]};font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;">{c.title()}</span>' for c in conditions)}
         </div>
     </div>
 </div>
@@ -71,7 +73,7 @@ st.markdown(f"""
 
 # ── Tabs ───────────────────────────────────────────────────────
 personal_tab, medical_tab, summary_tab, security_tab = st.tabs([
-    "👤 Personal Info", "🏥 Medical Profile", "📊 Health Summary", "🔒 Account Security"
+    ":material/person: Personal Info", ":material/local_hospital: Medical profile", ":material/bar_chart: Health summary", ":material/key: Account security"
 ])
 
 # ================================================================
@@ -108,18 +110,17 @@ with personal_tab:
                 except Exception as e:
                     st.error(f"Error updating profile: {e}")
 
-    st.divider()
     st.markdown("#### Account Details")
     c1, c2, c3 = st.columns(3)
     c1.metric("Member Since", user["created_at"].strftime("%d %b %Y") if user.get("created_at") else "—")
-    c2.metric("Account Status", "✅ Active" if user.get("is_active", True) else "❌ Inactive")
+    c2.metric("Account Status", ":material/check_circle: Active" if user.get("is_active", True) else ":material/cancel: Inactive")
     c3.metric("Patient ID", f"#{user['id']}")
 
 # ================================================================
 # TAB 2: Medical Profile
 # ================================================================
 with medical_tab:
-    st.subheader("Medical Profile")
+    st.subheader("Medical profile")
 
     c1, c2 = st.columns(2)
     with c1:
@@ -131,21 +132,21 @@ with medical_tab:
                 doctor_repo = DoctorRepository()
                 doctor_profile = doctor_repo.get_by_user_id(patient.assigned_doctor_id)
                 st.markdown(f"""
-                <div style="background:white;border:1px solid #DCE5E1;border-radius:10px;
+                <div style="background:{t['surface']};border:1px solid {t['border']};border-radius:10px;
                      padding:16px;display:flex;align-items:center;gap:14px;">
-                    <div style="width:44px;height:44px;border-radius:50%;background:#2A6A9B;
-                         color:white;display:flex;align-items:center;justify-content:center;
+                    <div style="width:44px;height:44px;border-radius:50%;background:{t['info']};
+                         color:{t['primary_ink']};display:flex;align-items:center;justify-content:center;
                          font-weight:700;font-size:16px;font-family:monospace;">
                         {"".join(n[0].upper() for n in doctor_user.full_name.split()[:2])}
                     </div>
                     <div>
-                        <div style="font-size:14px;font-weight:600;color:#16242B;">
+                        <div style="font-size:14px;font-weight:600;color:{t['ink']};">
                             {doctor_user.full_name}
                         </div>
-                        <div style="font-size:12px;color:#5F717A;">
+                        <div style="font-size:12px;color:{t['muted']};">
                             {doctor_profile.specialization or 'General Practice'} &bull; {doctor_profile.license_number}
                         </div>
-                        <div style="font-size:11px;color:#5F717A;">
+                        <div style="font-size:11px;color:{t['muted']};">
                             {doctor_user.email}
                         </div>
                     </div>
@@ -161,16 +162,14 @@ with medical_tab:
         if conditions:
             for c in conditions:
                 st.markdown(f"""
-                <div style="background:#FBF3E4;border:1px solid #FBF3E4;border-radius:8px;
+                <div style="background:{t['tint_amber']};border:1px solid {t['tint_amber']};border-radius:8px;
                      padding:8px 14px;margin-bottom:6px;display:flex;align-items:center;gap:8px;">
-                    <span style="font-size:14px;">⚠️</span>
-                    <span style="font-size:13px;font-weight:500;color:#16242B;">{c.title()}</span>
+                    <span class="material-symbols-outlined" style="font-size:14px;">warning</span>
+                    <span style="font-size:13px;font-weight:500;color:{t['ink']};">{c.title()}</span>
                 </div>
                 """, unsafe_allow_html=True)
         else:
             st.success("No chronic conditions recorded.")
-
-    st.divider()
 
     st.markdown("#### Clinical Notes from Doctor")
     notes = note_repo.list_for_patient(user["id"])
@@ -186,7 +185,7 @@ with medical_tab:
 # TAB 3: Health Summary
 # ================================================================
 with summary_tab:
-    st.subheader("Health Summary")
+    st.subheader("Health summary")
 
     history = vitals_service.get_history(user["id"], limit=100)
     active_meds = med_repo.list_for_patient(user["id"], active_only=True)
@@ -198,8 +197,6 @@ with summary_tab:
     c3.metric("AI Assessments", len(all_preds))
     recent_alerts = 0
     c4.metric("Open Alerts", recent_alerts)
-
-    st.divider()
 
     if history:
         latest = history[-1]
@@ -219,11 +216,10 @@ with summary_tab:
 
     if all_preds:
         st.markdown("#### Latest AI Risk Assessment")
-        _RISK_ICONS = {"low": "🟢", "medium": "🟡", "high": "🟠", "critical": "🔴"}
+        _RISK_LABELS = {"low": "", "medium": "", "high": "", "critical": ""}
         cols = st.columns(len(all_preds))
         for col, pred in zip(cols, all_preds):
-            icon = _RISK_ICONS.get(pred.risk_level, "⚪")
-            col.metric(f"{icon} {pred.disease_type.title()}",
+            col.metric(f"{pred.disease_type.title()}",
                        pred.risk_level.upper(),
                        f"{float(pred.risk_score):.0%} probability")
 
@@ -231,13 +227,13 @@ with summary_tab:
         st.markdown("#### Active Medications")
         for med in active_meds:
             st.markdown(f"""
-            <div style="background:white;border:1px solid #DCE5E1;border-radius:8px;
+            <div style="background:{t['surface']};border:1px solid {t['border']};border-radius:8px;
                  padding:10px 14px;margin-bottom:6px;display:flex;
                  align-items:center;gap:10px;">
-                <span style="font-size:16px;">💊</span>
+                <span class="material-symbols-outlined" style="font-size:16px;">medication</span>
                 <div>
                     <strong style="font-size:13px;">{med.name}</strong>
-                    <span style="color:#5F717A;font-size:12px;">
+                    <span style="color:{t['muted']};font-size:12px;">
                         — {med.dosage}, {med.frequency}
                     </span>
                 </div>
@@ -251,7 +247,7 @@ with summary_tab:
 # TAB 4: Account Security
 # ================================================================
 with security_tab:
-    st.subheader("Account Security")
+    st.subheader("Account security")
 
     with st.form("password_form"):
         st.markdown("#### Change Password")
@@ -274,7 +270,6 @@ with security_tab:
                 except ValidationError as e:
                     st.error(str(e))
 
-    st.divider()
     st.markdown("#### Session")
     st.caption(f"Logged in as: {user['email']} ({user['role'].title()})")
 

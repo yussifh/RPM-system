@@ -11,9 +11,9 @@ from app.core.security import SessionManager
 from app.core.exceptions import ValidationError, DuplicateRecordError
 from app.services.admin_service import AdminService
 from app.database.repositories.session_repository import SessionRepository
-from app.utils.custom_css import apply_theme, profile_widget, stat_tiles, notification_bell, page_header
+from app.utils.custom_css import apply_theme, profile_widget, stat_tiles, notification_bell, page_header, theme_tokens
 
-st.set_page_config(page_title="Admin Dashboard", page_icon="🛠️", layout="wide")
+st.set_page_config(page_title="Admin Dashboard", page_icon=":material/admin_panel_settings:", layout="wide")
 apply_theme()
 
 user = SessionManager.require_role("admin")
@@ -30,22 +30,21 @@ stat_tiles([
     {"label": "Users",    "value": stats["doctor_count"] + stats["patient_count"] + stats["admin_count"]},
 ])
 
-st.markdown(page_header("🛠️", "Admin Dashboard", f"System overview — logged in as {user['full_name']}"), unsafe_allow_html=True)
+st.markdown(page_header(":material/admin_panel_settings:", "Admin Dashboard", f"System overview — logged in as {user['full_name']}"), unsafe_allow_html=True)
 
 overview_tab, users_tab, provision_tab, register_tab, audit_tab, system_tab, sessions_tab, doctor_monitor_tab, bulk_tab = st.tabs([
-    "📊 Overview", "👥 Users", "🩺 Add Doctor", "🏥 Add Patient",
-    "📜 Audit Log", "🔧 System Health", "🔑 Sessions", "👨‍⚕️ Doctor Activity", "📥 Bulk Import"
+    ":material/bar_chart: Overview", ":material/group: Users", ":material/stethoscope: Add Doctor", ":material/local_hospital: Add Patient",
+    ":material/receipt: Audit Log", ":material/admin_panel_settings: System Health", ":material/lock: Sessions", ":material/person: Doctor Activity", ":material/inbox: Bulk Import"
 ])
 
 # ── Overview ─────────────────────────────────────────────────────
 with overview_tab:
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("👥 Total Patients", stats["patient_count"])
-    col2.metric("🩺 Total Doctors",  stats["doctor_count"])
-    col3.metric("🛠️ Total Admins",   stats["admin_count"])
-    col4.metric("👤 Total Users",    stats["patient_count"] + stats["doctor_count"] + stats["admin_count"])
+    col1.metric(":material/group: Total Patients", stats["patient_count"])
+    col2.metric(":material/stethoscope: Total Doctors",  stats["doctor_count"])
+    col3.metric(":material/admin_panel_settings: Total Admins",   stats["admin_count"])
+    col4.metric(":material/person: Total Users",    stats["patient_count"] + stats["doctor_count"] + stats["admin_count"])
 
-    st.divider()
     c1, c2 = st.columns(2)
     with c1:
         st.subheader("User distribution")
@@ -63,7 +62,7 @@ with overview_tab:
         st.subheader("Open alerts by severity")
         severity_counts = stats.get("open_alerts_by_severity", {})
         if not severity_counts:
-            st.success("✅ No open alerts system-wide.")
+            st.success(":material/check_circle: No open alerts system-wide.")
         else:
             severities = ["critical","high","medium","low"]
             counts     = [severity_counts.get(s,0) for s in severities]
@@ -78,9 +77,9 @@ with overview_tab:
 
     st.subheader("System health")
     h1, h2, h3 = st.columns(3)
-    h1.success("✅ Database: Connected")
-    h2.success("✅ ML Models: Loaded")
-    h3.success("✅ Authentication: Active")
+    h1.success(":material/check_circle: Database: Connected")
+    h2.success(":material/check_circle: ML Models: Loaded")
+    h3.success(":material/check_circle: Authentication: Active")
 
 # ── Users ─────────────────────────────────────────────────────────
 with users_tab:
@@ -94,22 +93,21 @@ with users_tab:
         for u in users_list:
             with st.container(border=True):
                 c1, c2, c3 = st.columns([4,1,1])
-                status = "🟢 Active" if u.is_active else "🔴 Inactive"
+                status = "[ACTIVE] Active" if u.is_active else "[INACTIVE] Inactive"
                 c1.write(f"**{u.full_name}** — {u.email}")
                 c1.caption(f"Status: {status} | Joined: {u.created_at}")
                 with c2:
                     if u.is_active:
-                        if st.button("🔒 Deactivate", key=f"deact_{u.id}"):
+                        if st.button(":material/lock: Deactivate", key=f"deact_{u.id}"):
                             admin_service.set_user_active(u.id, False, user["id"])
                             st.rerun()
                     else:
-                        if st.button("✅ Reactivate", key=f"react_{u.id}"):
+                        if st.button(":material/check_circle: Reactivate", key=f"react_{u.id}"):
                             admin_service.set_user_active(u.id, True, user["id"])
                             st.rerun()
 
     if role_filter == "patient":
-        st.divider()
-        st.subheader("🔄 Reassign patient to different doctor")
+        st.subheader(":material/refresh: Reassign patient to different doctor")
         patients = admin_service.patient_repo.list_all()
         doctors  = admin_service.doctor_repo.list_all()
         if patients and doctors:
@@ -118,13 +116,13 @@ with users_tab:
             with st.form("reassign_form"):
                 sel_patient = st.selectbox("Patient", list(patient_opts.keys()))
                 sel_doctor  = st.selectbox("New Doctor", list(doctor_opts.keys()))
-                if st.form_submit_button("Reassign ✅"):
+                if st.form_submit_button("Reassign :material/check_circle:"):
                     admin_service.reassign_patient(patient_opts[sel_patient], doctor_opts[sel_doctor], user["id"])
                     st.success("Patient reassigned successfully.")
 
 # ── Add Doctor ────────────────────────────────────────────────────
 with provision_tab:
-    st.subheader("🩺 Create a new doctor account")
+    st.subheader(":material/stethoscope: Create a new doctor account")
     with st.form("provision_doctor_form"):
         c1, c2 = st.columns(2)
         with c1:
@@ -134,17 +132,18 @@ with provision_tab:
         with c2:
             specialization = st.text_input("Specialization",        placeholder="e.g. Cardiology")
             license_number = st.text_input("Medical License Number",placeholder="e.g. LIC-1003")
-        if st.form_submit_button("Create Doctor Account ✅", width="stretch"):
+        if st.form_submit_button("Create Doctor Account :material/check_circle:", width="stretch"):
             try:
                 new_doc = admin_service.provision_doctor(
                     full_name=full_name, email=email, password=password,
                     specialization=specialization or None, license_number=license_number,
                 )
-                st.success(f"✅ Doctor account created: Dr. {new_doc.full_name} ({new_doc.email})")
-                st.markdown("""
-                <div style="background:#E7F4EF;border:1px solid #0E7A5C;border-radius:8px;padding:16px;margin-top:12px;">
-                    <strong style="color:#16242B;">🔑 Login Credentials for Dr. {name}</strong><br>
-                    <span style="font-size:13px;color:#5F717A;">Share these credentials with the doctor so they can sign in.</span>
+                st.success(f":material/check_circle: Doctor account created: Dr. {new_doc.full_name} ({new_doc.email})")
+                t = theme_tokens()
+                st.markdown(f"""
+                <div style="background:{t['tint_primary']};border:1px solid {t['primary']};border-radius:8px;padding:16px;margin-top:12px;">
+                    <strong style="color:{t['ink']};">:material/lock: Login Credentials for Dr. {name}</strong><br>
+                    <span style="font-size:13px;color:{t['muted']};">Share these credentials with the doctor so they can sign in.</span>
                 </div>
                 """.format(name=new_doc.full_name), unsafe_allow_html=True)
                 c1, c2 = st.columns(2)
@@ -158,7 +157,7 @@ with provision_tab:
 
 # ── Add Patient ───────────────────────────────────────────────────
 with register_tab:
-    st.subheader("🏥 Register a new patient")
+    st.subheader(":material/local_hospital: Register a new patient")
     doctors = admin_service.doctor_repo.list_all()
     if not doctors:
         st.warning("No doctors available. Please add a doctor first.")
@@ -176,7 +175,7 @@ with register_tab:
                 p_doctor = st.selectbox("Assign to Doctor", list(doctor_opts.keys()))
                 p_conds  = st.multiselect("Chronic Conditions", ["stroke","diabetes","hypertension"])
                 p_phone  = st.text_input("Phone Number (optional)")
-            if st.form_submit_button("Register Patient ✅", width="stretch"):
+            if st.form_submit_button("Register Patient :material/check_circle:", width="stretch"):
                 try:
                     from app.services.auth_service import AuthService
                     auth = AuthService()
@@ -186,7 +185,7 @@ with register_tab:
                         assigned_doctor_id=doctor_opts[p_doctor],
                         chronic_conditions=p_conds,
                     )
-                    st.success(f"✅ Patient registered: {new_user.full_name} ({new_user.email})")
+                    st.success(f":material/check_circle: Patient registered: {new_user.full_name} ({new_user.email})")
                 except (ValidationError, DuplicateRecordError) as e:
                     st.error(str(e))
                 except Exception as e:
@@ -194,7 +193,7 @@ with register_tab:
 
 # ── Audit Log ─────────────────────────────────────────────────────
 with audit_tab:
-    st.subheader("📜 Recent system activity")
+    st.subheader(":material/receipt: Recent system activity")
     logs = admin_service.get_recent_audit_logs(limit=100)
     if not logs:
         st.info("No audit log entries yet.")
@@ -208,54 +207,51 @@ with audit_tab:
 
 # ── System Health ─────────────────────────────────────────────────
 with system_tab:
-    st.subheader("🔧 System Health Monitor")
+    st.subheader("System health monitor")
 
+    t = theme_tokens()
     c1, c2, c3 = st.columns(3)
 
     with c1:
-        st.markdown("""
-        <div style="background:white;border-radius:10px;padding:20px;border-left:4px solid #0E7A5C;">
-            <div style="font-size:11px;color:#5F717A;text-transform:uppercase;letter-spacing:.04em;">Database</div>
-            <div style="font-size:24px;font-weight:700;color:#0E7A5C;margin:4px 0;">● Online</div>
-            <div style="font-size:12px;color:#5F717A;">MySQL Connection OK</div>
+        st.markdown(f"""
+        <div style="background:{t['surface']};border-radius:10px;padding:20px;border-left:4px solid {t['primary']};">
+            <div style="font-size:11px;color:{t['muted']};text-transform:uppercase;letter-spacing:.04em;">Database</div>
+            <div style="font-size:24px;font-weight:700;color:{t['primary']};margin:4px 0;"><span class="material-symbols-outlined" style="font-size:24px;color:{t['primary']};vertical-align:middle;">circle</span> Online</div>
+            <div style="font-size:12px;color:{t['muted']};">MySQL Connection OK</div>
         </div>
         """, unsafe_allow_html=True)
 
     with c2:
-        st.markdown("""
-        <div style="background:white;border-radius:10px;padding:20px;border-left:4px solid #2A6A9B;">
-            <div style="font-size:11px;color:#5F717A;text-transform:uppercase;letter-spacing:.04em;">ML Models</div>
-            <div style="font-size:24px;font-weight:700;color:#2A6A9B;margin:4px 0;">3 Loaded</div>
-            <div style="font-size:12px;color:#5F717A;">Stroke, Diabetes, Hypertension</div>
+        st.markdown(f"""
+        <div style="background:{t['surface']};border-radius:10px;padding:20px;border-left:4px solid {t['info']};">
+            <div style="font-size:11px;color:{t['muted']};text-transform:uppercase;letter-spacing:.04em;">ML Models</div>
+            <div style="font-size:24px;font-weight:700;color:{t['info']};margin:4px 0;">3 Loaded</div>
+            <div style="font-size:12px;color:{t['muted']};">Stroke, Diabetes, Hypertension</div>
         </div>
         """, unsafe_allow_html=True)
 
     with c3:
         active_sessions = session_repo.count_active_sessions()
         st.markdown(f"""
-        <div style="background:white;border-radius:10px;padding:20px;border-left:4px solid #B8761D;">
-            <div style="font-size:11px;color:#5F717A;text-transform:uppercase;letter-spacing:.04em;">Active Sessions</div>
-            <div style="font-size:24px;font-weight:700;color:#B8761D;margin:4px 0;">{active_sessions}</div>
-            <div style="font-size:12px;color:#5F717A;">Currently logged in users</div>
+        <div style="background:{t['surface']};border-radius:10px;padding:20px;border-left:4px solid {t['amber']};">
+            <div style="font-size:11px;color:{t['muted']};text-transform:uppercase;letter-spacing:.04em;">Active Sessions</div>
+            <div style="font-size:24px;font-weight:700;color:{t['amber']};margin:4px 0;">{active_sessions}</div>
+            <div style="font-size:12px;color:{t['muted']};">Currently logged in users</div>
         </div>
         """, unsafe_allow_html=True)
-
-    st.divider()
 
     # System stats summary
     col1, col2 = st.columns(2)
     with col1:
         open_alerts = stats.get("open_alerts_by_severity", {})
         total_open = sum(open_alerts.values()) if isinstance(open_alerts, dict) else 0
-        st.metric("🚨 Open Alerts", total_open)
+        st.metric(":material/warning: Open Alerts", total_open)
     with col2:
         total_users = stats["patient_count"] + stats["doctor_count"] + stats["admin_count"]
-        st.metric("👤 Total Users", total_users)
-
-    st.divider()
+        st.metric(":material/person: Total Users", total_users)
 
     # System info
-    with st.expander("ℹ️ System Information", expanded=False):
+    with st.expander(":material/info: System Information", expanded=False):
         c1, c2 = st.columns(2)
         with c1:
             st.markdown("**Application:** RPM System v1.0")
@@ -270,7 +266,7 @@ with system_tab:
 
 # ── Active Sessions ──────────────────────────────────────────────
 with sessions_tab:
-    st.subheader("🔑 Active User Sessions")
+    st.subheader("Active user sessions")
 
     active_sessions = session_repo.get_active_sessions()
 
@@ -290,7 +286,6 @@ with sessions_tab:
 
         st.dataframe(session_data, width="stretch")
 
-        st.markdown("---")
         c1, c2 = st.columns(2)
         with c1:
             st.metric("Active Sessions", len(active_sessions))
@@ -301,7 +296,7 @@ with sessions_tab:
 
 # ── Doctor Activity Monitoring ────────────────────────────────────
 with doctor_monitor_tab:
-    st.subheader("👨‍⚕️ Doctor Activity Monitor")
+    st.subheader("Doctor activity monitor")
     st.caption("Track what each doctor is doing in the system.")
 
     from app.database.repositories.appointment_repository import AppointmentRepository
@@ -338,25 +333,25 @@ with doctor_monitor_tab:
             ack_alerts = alert_repo_d.count_acknowledged_by_doctor(doc.user_id)
 
             with st.container(border=True):
-                st.markdown(f"### 🩺 Dr. {doc_name}")
+                st.markdown(f"### :material/stethoscope: Dr. {doc_name}")
                 st.caption(f"Specialization: {doc.specialization or 'General'} | License: {doc.license_number}")
 
                 c1, c2, c3, c4, c5 = st.columns(5)
-                c1.metric("👥 Patients", patient_count)
-                c2.metric("📅 Total Appts", total_appts)
-                c3.metric("✅ Completed", completed_appts)
-                c4.metric("📝 Clinical Notes", note_count)
-                c5.metric("🚨 Open Alerts", open_alerts)
+                c1.metric(":material/group: Patients", patient_count)
+                c2.metric(":material/calendar_month: Total Appts", total_appts)
+                c3.metric(":material/check_circle: Completed", completed_appts)
+                c4.metric(":material/edit_note: Clinical Notes", note_count)
+                c5.metric(":material/warning: Open Alerts", open_alerts)
 
                 c1, c2, c3 = st.columns(3)
-                c1.metric("⏳ Scheduled", scheduled_appts)
-                c2.metric("❌ Cancelled", cancelled_appts)
-                c3.metric("👁️ Alerts Acknowledged", ack_alerts)
+                c1.metric(":material/schedule: Scheduled", scheduled_appts)
+                c2.metric(":material/cancel: Cancelled", cancelled_appts)
+                c3.metric(":material/visibility: Alerts Acknowledged", ack_alerts)
 
                 # Recent activity details
-                with st.expander(f"📋 View Details for Dr. {doc_name}"):
+                with st.expander(f":material/clipboard: View Details for Dr. {doc_name}"):
                     detail_tab1, detail_tab2, detail_tab3 = st.tabs([
-                        "📅 Appointments", "📝 Clinical Notes", "🚨 Alerts"
+                        ":material/calendar_month: Appointments", ":material/edit_note: Clinical Notes", ":material/warning: Alerts"
                     ])
 
                     with detail_tab1:
@@ -396,7 +391,6 @@ with doctor_monitor_tab:
                             st.success("No open alerts.")
 
         # Summary table
-        st.divider()
         st.markdown("#### Summary Table")
         summary_data = []
         for doc in doctors:
@@ -424,7 +418,7 @@ with doctor_monitor_tab:
 
 # ── Bulk Patient Import ──────────────────────────────────────────
 with bulk_tab:
-    st.subheader("📥 Bulk Patient Import")
+    st.subheader(":material/inbox: Bulk patient import")
     st.caption("Upload a CSV file to register multiple patients at once.")
 
     st.markdown("""
@@ -453,7 +447,7 @@ with bulk_tab:
         st.info(f"Found {sum(1 for _ in reader)} rows in the CSV file.")
         reader = csv.DictReader(io.StringIO(content))
 
-        if st.button("📥 Import All Patients", width="stretch"):
+        if st.button(":material/inbox: Import All Patients", width="stretch"):
             auth_service = AuthService()
             success_count = 0
             errors = []
@@ -491,9 +485,9 @@ with bulk_tab:
                     errors.append(f"Row {i}: {str(e)}")
 
             if success_count:
-                st.success(f"✅ Successfully imported {success_count} patient(s)!")
+                st.success(f":material/check_circle: Successfully imported {success_count} patient(s)!")
             if errors:
-                with st.expander(f"⚠️ {len(errors)} Error(s)"):
+                with st.expander(f":material/warning: {len(errors)} Error(s)"):
                     for err in errors:
                         st.error(err)
 

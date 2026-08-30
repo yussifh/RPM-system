@@ -83,9 +83,9 @@ def page_header(icon: str, title: str, subtitle: str = None) -> str:
     return f"""
     <div style="margin:0 0 6px;">
         <div style="display:flex;align-items:center;gap:12px;">
-            <div style="width:44px;height:44px;border-radius:12px;background:{t['tint_primary']};
+            <div class="material-symbols-outlined" style="width:44px;height:44px;border-radius:12px;background:{t['tint_primary']};
                  border:1px solid {t['border']};display:flex;align-items:center;justify-content:center;
-                 font-size:22px;flex-shrink:0;">{icon}</div>
+                 font-size:22px;flex-shrink:0;">{material_icon(icon)}</div>
             <div>
                 <h1 style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;
                      color:{t['ink']};margin:0;line-height:1.15;">{title}</h1>
@@ -358,8 +358,8 @@ def _light_css(t: dict) -> str:
     .stForm {{ border-color: {t['border']} !important; border-radius: 12px !important; }}
     hr {{ border-color: {t['border']} !important; }}
     code, pre, [data-testid="stCode"] {{ font-family: 'JetBrains Mono', monospace !important; }}
-    #MainMenu {{ visibility: hidden; }} footer {{ visibility: hidden; }}
-    [data-testid="stToolbar"] {{ visibility: hidden; }} [data-testid="stDecoration"] {{ display: none; }}
+    footer {{ visibility: hidden; }}
+    [data-testid="stDecoration"] {{ display: none; }}
     </style>
     """
 
@@ -427,8 +427,8 @@ def _dark_css(t: dict) -> str:
     .stForm {{ border-color: {t['border']} !important; border-radius: 12px !important; }}
     hr {{ border-color: {t['border']} !important; }}
     code, pre, [data-testid="stCode"] {{ font-family: 'JetBrains Mono', monospace !important; }}
-    #MainMenu {{ visibility: hidden; }} footer {{ visibility: hidden; }}
-    [data-testid="stToolbar"] {{ visibility: hidden; }} [data-testid="stDecoration"] {{ display: none; }}
+    footer {{ visibility: hidden; }}
+    [data-testid="stDecoration"] {{ display: none; }}
     </style>
     """
 

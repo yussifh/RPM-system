@@ -21,7 +21,7 @@ from app.database.repositories.lifestyle_repository import LifestyleRepository
 from app.services.medication_interaction_service import MedicationInteractionService
 from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 
-st.set_page_config(page_title="Medications & Lifestyle", page_icon="💊", layout="wide")
+st.set_page_config(page_title="Medications & Lifestyle", page_icon=":material/medication:", layout="wide")
 apply_theme()
 
 user = SessionManager.get_current_user()
@@ -40,7 +40,7 @@ interaction_svc = MedicationInteractionService()
 profile_widget(user)
 notification_bell(user)
 
-st.markdown(page_header("💊", "Medications & Lifestyle", "Prescriptions, adherence, and lifestyle habits at a glance"), unsafe_allow_html=True)
+st.markdown(page_header(":material/medication:", "Medications & Lifestyle", "Prescriptions, adherence, and lifestyle habits at a glance"), unsafe_allow_html=True)
 
 
 def generate_medication_pdf(patient_name: str, active_meds, stopped_meds, adherence_rate: float) -> bytes:
@@ -149,11 +149,11 @@ if user["role"] == "doctor":
         selected_patient_name = st.selectbox("Select Patient", list(patient_map.keys()))
         patient_id = patient_map[selected_patient_name]
 
-        prescribe_tab, view_tab = st.tabs(["📋 Prescribe Medication", "👁️ View Patient Medications"])
+        prescribe_tab, view_tab = st.tabs(["Prescribe medication", "View patient medications"])
 
         # ── TAB 1: Prescribe ──────────────────────────────────────
         with prescribe_tab:
-            st.subheader(f"📋 Prescribe Medication for {selected_patient_name}")
+            st.subheader(f"Prescribe medication for {selected_patient_name}")
 
             with st.form("prescribe_med_form", clear_on_submit=True):
                 c1, c2 = st.columns(2)
@@ -177,7 +177,7 @@ if user["role"] == "doctor":
                 med_notes = st.text_area("Prescription Notes (optional)",
                                           placeholder="e.g. Take with food. Monitor blood sugar after 2 weeks.")
 
-                if st.form_submit_button("💊 Prescribe Medication", width="stretch"):
+                if st.form_submit_button("Prescribe medication", width="stretch"):
                     if not med_name or not dosage:
                         st.error("Please fill in medication name and dosage.")
                     else:
@@ -189,12 +189,12 @@ if user["role"] == "doctor":
                             prescribed_by=user["full_name"],
                             notes=med_notes or None,
                         )
-                        st.success(f"✅ {med_name} prescribed to {selected_patient_name} successfully!")
+                        st.success(f"{med_name} prescribed to {selected_patient_name} successfully!")
                         st.rerun()
 
         # ── TAB 2: View Patient Medications ───────────────────────
         with view_tab:
-            st.subheader(f"👁️ Medications for {selected_patient_name}")
+            st.subheader(f"Medications for {selected_patient_name}")
 
             active_meds = med_repo.list_for_patient(patient_id, active_only=True)
             if not active_meds:
@@ -207,10 +207,10 @@ if user["role"] == "doctor":
                         with c1:
                             st.markdown(f"""
                             <div style="display:flex;align-items:center;gap:12px;">
-                                <div style="width:40px;height:40px;border-radius:50%;
+                                <div class="material-symbols-outlined" style="width:40px;height:40px;border-radius:50%;
                                      background:#0E7A5C;color:white;display:flex;
                                      align-items:center;justify-content:center;
-                                     font-size:18px;">💊</div>
+                                     font-size:18px;">medication</div>
                                 <div>
                                     <strong style="font-size:15px;">{med.name}</strong>
                                     <br>
@@ -226,7 +226,7 @@ if user["role"] == "doctor":
                             </div>
                             """, unsafe_allow_html=True)
                             if med.notes:
-                                st.caption(f"📝 {med.notes}")
+                                st.caption(f":material/edit_note: {med.notes}")
                         with c2:
                             if st.button("⏹ Stop", key=f"doc_stop_{med.id}"):
                                 med_repo.stop(med.id, patient_id)
@@ -237,7 +237,7 @@ if user["role"] == "doctor":
             all_meds = med_repo.list_for_patient(patient_id, active_only=False)
             stopped = [m for m in all_meds if not m.is_active]
             if stopped:
-                with st.expander(f"🗂️ Past Medications ({len(stopped)})"):
+                with st.expander(f"Past medications ({len(stopped)})"):
                     for med in stopped:
                         st.markdown(f"~~{med.name}~~ — {med.dosage} "
                                     f"({med.frequency}) | Stopped: {med.end_date or 'Unknown'}")
@@ -245,7 +245,6 @@ if user["role"] == "doctor":
             # Adherence rate
             if active_meds:
                 rate = med_repo.get_adherence_rate(patient_id, days=30)
-                st.divider()
                 color = "#0E7A5C" if rate >= 80 else "#B8761D" if rate >= 50 else "#C73E3A"
                 st.markdown(f"""
                 <div style="background:white;border:1px solid #DCE5E1;border-radius:10px;
@@ -267,8 +266,7 @@ if user["role"] == "doctor":
                 active_med_names = [m.name for m in active_meds]
                 interactions = interaction_svc.check_interactions(active_med_names)
                 if interactions:
-                    st.divider()
-                    st.subheader("⚠️ Drug Interaction Warnings")
+                    st.subheader("Drug interaction warnings")
                     for interaction in interactions:
                         severity_color = "#C73E3A" if interaction["severity"] == "severe" else "#B8761D"
                         st.markdown(f"""
@@ -294,7 +292,7 @@ elif user["role"] == "patient":
     st.caption("Track your medications, BMI, and lifestyle data to improve AI prediction accuracy.")
 
     med_tab, log_tab, lifestyle_tab, bmi_tab = st.tabs([
-        "💊 My Medications", "✅ Daily Log", "🏃 Lifestyle & BMI", "📊 BMI History"
+        "My medications", "Daily log", "Lifestyle and BMI", "BMI history"
     ])
 
     patient_id = user["id"]
@@ -303,7 +301,7 @@ elif user["role"] == "patient":
     with med_tab:
         st.subheader("My Current Medications")
 
-        with st.expander("➕ Add New Medication", expanded=False):
+        with st.expander("Add new medication", expanded=False):
             with st.form("add_med_form", clear_on_submit=True):
                 c1, c2 = st.columns(2)
                 with c1:
@@ -328,7 +326,7 @@ elif user["role"] == "patient":
                 med_notes = st.text_area("Notes (optional)",
                                           placeholder="e.g. Take with food, avoid grapefruit")
 
-                if st.form_submit_button("Add Medication ✅", width="stretch"):
+                if st.form_submit_button("Add medication", width="stretch"):
                     if not med_name or not dosage:
                         st.error("Please fill in medication name and dosage.")
                     else:
@@ -340,7 +338,7 @@ elif user["role"] == "patient":
                             prescribed_by=prescribed_by or None,
                             notes=med_notes or None,
                         )
-                        st.success(f"✅ {med_name} added successfully!")
+                        st.success(f"{med_name} added successfully!")
                         st.rerun()
 
         st.markdown("#### Active Medications")
@@ -355,10 +353,10 @@ elif user["role"] == "patient":
                     with c1:
                         st.markdown(f"""
                         <div style="display:flex;align-items:center;gap:12px;">
-                            <div style="width:40px;height:40px;border-radius:50%;
+                            <div class="material-symbols-outlined" style="width:40px;height:40px;border-radius:50%;
                                  background:#0E7A5C;color:white;display:flex;
                                  align-items:center;justify-content:center;
-                                 font-size:18px;">💊</div>
+                                 font-size:18px;">medication</div>
                             <div>
                                 <strong style="font-size:15px;">{med.name}</strong>
                                 <br>
@@ -374,7 +372,7 @@ elif user["role"] == "patient":
                         </div>
                         """, unsafe_allow_html=True)
                         if med.notes:
-                            st.caption(f"📝 {med.notes}")
+                            st.caption(f":material/edit_note: {med.notes}")
                     with c2:
                         if st.button("⏹ Stop", key=f"stop_{med.id}",
                                       help="Mark this medication as stopped"):
@@ -382,7 +380,7 @@ elif user["role"] == "patient":
                             st.success(f"{med.name} stopped.")
                             st.rerun()
                     with c3:
-                        if st.button("🗑️", key=f"del_{med.id}", help="Delete"):
+                        if st.button(":material/delete:", key=f"del_{med.id}", help="Delete"):
                             if st.session_state.get(f"confirm_del_{med.id}"):
                                 med_repo.delete(med.id, patient_id)
                                 st.rerun()
@@ -392,7 +390,7 @@ elif user["role"] == "patient":
         all_meds = med_repo.list_for_patient(patient_id, active_only=False)
         stopped = [m for m in all_meds if not m.is_active]
         if stopped:
-            with st.expander(f"🗂️ Past Medications ({len(stopped)})"):
+            with st.expander(f"Past medications ({len(stopped)})"):
                 for med in stopped:
                     st.markdown(f"~~{med.name}~~ — {med.dosage} "
                                 f"({med.frequency}) | Stopped: {med.end_date or 'Unknown'}")
@@ -404,7 +402,7 @@ elif user["role"] == "patient":
         adherence = med_repo.get_adherence_rate(patient_id, days=30) if active_all else 0.0
         pdf_bytes = generate_medication_pdf(user["full_name"], active_all, stopped_all, adherence)
         st.download_button(
-            "🖨️ Download Medications as PDF",
+            "Download medications as PDF",
             data=pdf_bytes,
             file_name=f"medications_{user['full_name'].replace(' ', '_')}_{date.today()}.pdf",
             mime="application/pdf",
@@ -413,7 +411,6 @@ elif user["role"] == "patient":
 
         if active_meds:
             rate = med_repo.get_adherence_rate(patient_id, days=30)
-            st.divider()
             color = "#0E7A5C" if rate >= 80 else "#B8761D" if rate >= 50 else "#C73E3A"
             st.markdown(f"""
             <div style="background:white;border:1px solid #DCE5E1;border-radius:10px;
@@ -434,8 +431,7 @@ elif user["role"] == "patient":
             active_med_names = [m.name for m in active_meds]
             interactions = interaction_svc.check_interactions(active_med_names)
             if interactions:
-                st.divider()
-                st.subheader("⚠️ Drug Interaction Warnings")
+                st.subheader("Drug interaction warnings")
                 for interaction in interactions:
                     severity_color = "#C73E3A" if interaction["severity"] == "severe" else "#B8761D"
                     st.markdown(f"""
@@ -455,7 +451,7 @@ elif user["role"] == "patient":
 
     # ── TAB 2: Daily Medication Log ───────────────────────────────
     with log_tab:
-        st.subheader("✅ Daily Medication Log")
+        st.subheader("Daily medication log")
         st.caption(f"Today: {date.today().strftime('%A, %d %B %Y')}")
 
         active_meds = med_repo.list_for_patient(patient_id, active_only=True)
@@ -475,8 +471,8 @@ elif user["role"] == "patient":
                 with st.container(border=True):
                     c1, c2, c3 = st.columns([4, 1, 1])
                     with c1:
-                        status_icon = "✅" if (already_logged and log_for_today and log_for_today.taken) else \
-                                      "❌" if (already_logged and log_for_today and not log_for_today.taken) else "⏳"
+                        status_icon = ":material/check_circle:" if (already_logged and log_for_today and log_for_today.taken) else \
+                                      ":material/cancel:" if (already_logged and log_for_today and not log_for_today.taken) else ":material/schedule:"
                         st.markdown(f"""
                         <strong>{status_icon} {med.name}</strong>
                         <span style="color:#5F717A;font-size:13px;">
@@ -484,35 +480,34 @@ elif user["role"] == "patient":
                         </span>
                         """, unsafe_allow_html=True)
                         if already_logged:
-                            taken_text = "Taken ✅" if log_for_today.taken else "Missed ❌"
+                            taken_text = "Taken :material/check_circle:" if log_for_today.taken else "Missed :material/cancel:"
                             st.caption(f"Already logged today: {taken_text}")
 
                     if not already_logged:
                         with c2:
-                            if st.button("✅ Taken", key=f"taken_{med.id}",
+                            if st.button(":material/check_circle: Taken", key=f"taken_{med.id}",
                                           width="stretch"):
                                 med_repo.log_taken(med.id, patient_id, taken=True)
-                                st.success(f"Logged: {med.name} taken ✅")
+                                st.success(f"Logged: {med.name} taken")
                                 st.rerun()
                         with c3:
-                            if st.button("❌ Missed", key=f"missed_{med.id}",
+                            if st.button(":material/cancel: Missed", key=f"missed_{med.id}",
                                           width="stretch"):
                                 med_repo.log_taken(med.id, patient_id, taken=False)
-                                st.warning(f"Logged: {med.name} missed ❌")
+                                st.warning(f"Logged: {med.name} missed")
                                 st.rerun()
 
             if today_logs:
                 taken_count  = sum(1 for l in today_logs if l.taken)
                 missed_count = sum(1 for l in today_logs if not l.taken)
-                st.divider()
                 m1, m2, m3 = st.columns(3)
                 m1.metric("Total Medications", len(active_meds))
-                m2.metric("Taken Today ✅",    taken_count)
-                m3.metric("Missed Today ❌",   missed_count)
+                m2.metric("Taken today",    taken_count)
+                m3.metric("Missed today",   missed_count)
 
     # ── TAB 3: Lifestyle & BMI ────────────────────────────────────
     with lifestyle_tab:
-        st.subheader("🏃 Lifestyle & BMI Data")
+        st.subheader("Lifestyle and BMI data")
         st.info("This data improves the accuracy of your AI risk predictions. "
                 "Please update whenever your lifestyle changes.")
 
@@ -526,10 +521,9 @@ elif user["role"] == "patient":
             c3.metric("Exercise",   f"{latest.exercise_minutes_week or 0} min/week")
             c4.metric("Smoking",    latest.smoking_status or "—")
             st.caption(f"Last updated: {latest.recorded_at}")
-            st.divider()
 
         with st.form("lifestyle_form", clear_on_submit=True):
-            st.markdown("#### 📏 Body Measurements")
+            st.markdown("#### Body measurements")
             c1, c2 = st.columns(2)
             with c1:
                 height_cm = st.number_input("Height (cm)", min_value=0.0,
@@ -549,13 +543,13 @@ elif user["role"] == "patient":
                 st.markdown(f"""
                 <div style="background:#E7F4EF;border:1px solid #E7F4EF;
                      border-radius:8px;padding:10px 14px;margin:8px 0;">
-                    📊 Calculated BMI: <strong style="color:{bmi_color};
+                    Calculated BMI: <strong style="color:{bmi_color};
                     font-size:18px;">{bmi_val:.1f}</strong>
                     <span style="color:#5F717A;"> — {bmi_cat}</span>
                 </div>
                 """, unsafe_allow_html=True)
 
-            st.markdown("#### 🚬 Smoking & Alcohol")
+            st.markdown("#### Smoking and alcohol")
             c1, c2 = st.columns(2)
             with c1:
                 smoking_status = st.selectbox("Smoking Status", [
@@ -568,7 +562,7 @@ elif user["role"] == "patient":
                                            min_value=0, max_value=100, value=0,
                                            help="1 unit = 1 small beer or 1 shot of spirits")
 
-            st.markdown("#### 🩸 Cholesterol Levels")
+            st.markdown("#### Cholesterol levels")
             c1, c2, c3 = st.columns(3)
             with c1:
                 total_chol = st.number_input("Total Cholesterol (mg/dL)",
@@ -583,7 +577,7 @@ elif user["role"] == "patient":
                                             min_value=0.0, max_value=400.0, value=0.0,
                                             help="Bad cholesterol — lower is better")
 
-            st.markdown("#### 🏋️ Physical Activity")
+            st.markdown("#### Physical activity")
             c1, c2 = st.columns(2)
             with c1:
                 exercise_mins = st.number_input("Exercise (minutes per week)",
@@ -597,7 +591,7 @@ elif user["role"] == "patient":
                                        placeholder="e.g. low-sugar, low-salt, balanced, vegetarian")
             lifestyle_notes = st.text_area("Additional Notes (optional)")
 
-            if st.form_submit_button("Save Lifestyle Data ✅", width="stretch"):
+            if st.form_submit_button("Save lifestyle data", width="stretch"):
                 lifestyle_repo.save(
                     patient_id=patient_id,
                     height_cm=height_cm if height_cm > 0 else None,
@@ -613,13 +607,13 @@ elif user["role"] == "patient":
                     diet_type=diet_type or None,
                     notes=lifestyle_notes or None,
                 )
-                st.success("✅ Lifestyle data saved! This will improve your AI risk predictions.")
+                st.success("Lifestyle data saved! This will improve your AI risk predictions.")
                 st.balloons()
                 st.rerun()
 
     # ── TAB 4: BMI History ────────────────────────────────────────
     with bmi_tab:
-        st.subheader("📊 BMI & Lifestyle History")
+        st.subheader("BMI and lifestyle history")
         history = lifestyle_repo.get_history(patient_id, limit=20)
 
         if not history:

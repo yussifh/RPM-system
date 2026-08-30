@@ -8,7 +8,7 @@ from app.database.repositories.rating_repository import RatingRepository
 from app.database.repositories.patient_repository import PatientRepository
 from app.database.repositories.doctor_repository import DoctorRepository
 
-st.set_page_config(page_title="RPM — Doctor Rating", page_icon="⭐", layout="wide")
+st.set_page_config(page_title="RPM — Doctor Rating", page_icon=":material/star:", layout="wide")
 apply_theme()
 
 user = SessionManager.get_current_user()
@@ -23,7 +23,7 @@ rating_repo = RatingRepository()
 patient_repo = PatientRepository()
 doctor_repo = DoctorRepository()
 
-st.markdown(page_header("⭐", "Doctor Ratings", "Rate your doctor and review past feedback."), unsafe_allow_html=True)
+st.markdown(page_header(":material/star:", "Doctor Ratings", "Rate your doctor and review past feedback."), unsafe_allow_html=True)
 
 role = user["role"]
 
@@ -54,7 +54,7 @@ if role == "patient":
         existing = rating_repo.list_for_doctor(doctor_user_id)
         my_rating = [r for r in existing if r["patient_user_id"] == user["id"]]
         if my_rating:
-            st.success(f"You already rated this doctor: {'⭐' * my_rating[0]['rating']}")
+            st.success(f"You already rated this doctor: {':material/star:' * my_rating[0]['rating']}")
 
     with c2:
         st.markdown(f"### Rate Dr. {doctor.specialization or 'General'}")
@@ -78,7 +78,6 @@ if role == "patient":
             st.info("You have already rated this doctor.")
 
     if existing:
-        st.markdown("---")
         st.markdown("### All Ratings for This Doctor")
         for r in existing[:10]:
             with st.container():
@@ -86,7 +85,7 @@ if role == "patient":
                 <div style="background:white;border:1px solid #DCE5E1;border-radius:10px;padding:14px;margin-bottom:10px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;">
                         <span style="font-weight:600;color:#16242B;">{r['patient_name']}</span>
-                        <span style="color:#B8761D;font-size:14px;">{'⭐' * r['rating']}</span>
+                        <span style="color:#B8761D;font-size:14px;">{'<span class="material-symbols-outlined" style="font-size:14px;color:#B8761D;">star</span>' * r['rating']}</span>
                     </div>
                     <div style="font-size:11px;color:#5F717A;margin-top:2px;">{r['created_at'].strftime('%Y-%m-%d %H:%M') if r['created_at'] else ''}</div>
                     {'<p style="margin-top:6px;font-size:13px;color:#333;">' + r['comment'] + '</p>' if r.get('comment') else ''}
@@ -105,7 +104,6 @@ elif role == "doctor":
         c3.metric("5-Star Reviews",
                    sum(1 for r in ratings if r["rating"] == 5))
 
-    st.markdown("---")
     if not ratings:
         st.info("No ratings received yet.")
     else:
@@ -115,7 +113,7 @@ elif role == "doctor":
                 <div style="background:white;border:1px solid #DCE5E1;border-radius:10px;padding:14px;margin-bottom:10px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;">
                         <span style="font-weight:600;color:#16242B;">{r['patient_name']}</span>
-                        <span style="color:#B8761D;font-size:14px;">{'⭐' * r['rating']}</span>
+                        <span style="color:#B8761D;font-size:14px;">{'<span class="material-symbols-outlined" style="font-size:14px;color:#B8761D;">star</span>' * r['rating']}</span>
                     </div>
                     <div style="font-size:11px;color:#5F717A;margin-top:2px;">{r['created_at'].strftime('%Y-%m-%d %H:%M') if r['created_at'] else ''}</div>
                     {'<p style="margin-top:6px;font-size:13px;color:#333;">' + r['comment'] + '</p>' if r.get('comment') else ''}
@@ -130,7 +128,6 @@ elif role == "admin":
     c1.metric("Total Ratings", len(ratings))
     c2.metric("System Average", f"{avg_all:.1f}/5" if ratings else "N/A")
 
-    st.markdown("---")
     if not ratings:
         st.info("No ratings in the system.")
     else:

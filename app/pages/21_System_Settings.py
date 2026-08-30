@@ -6,7 +6,7 @@ from app.utils.custom_css import apply_theme, profile_widget, notification_bell,
 from app.core.security import SessionManager
 from app.database.repositories.settings_repository import SettingsRepository
 
-st.set_page_config(page_title="RPM — System Settings", page_icon="⚙️", layout="wide")
+st.set_page_config(page_title="RPM — System Settings", page_icon=":material/settings:", layout="wide")
 apply_theme()
 
 user = SessionManager.get_current_user()
@@ -15,7 +15,7 @@ if not user:
     st.stop()
 
 if user["role"] != "admin":
-    st.error("⛔ Access denied. Admin only.")
+    st.error(":material/block: Access denied. Admin only.")
     st.stop()
 
 profile_widget(user)
@@ -24,9 +24,9 @@ notification_bell(user)
 settings_repo = SettingsRepository()
 settings_repo.seed_defaults()
 
-st.markdown(page_header("⚙️", "System Settings", "Configure clinic info, vitals thresholds, notifications, and security."), unsafe_allow_html=True)
+st.markdown(page_header(":material/settings:", "System Settings", "Configure clinic info, vitals thresholds, notifications, and security."), unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4 = st.tabs(["🏥 Clinic Info", "📊 Vitals Thresholds", "📧 Notifications", "🔐 Security"])
+tab1, tab2, tab3, tab4 = st.tabs([":material/local_hospital: Clinic Info", ":material/bar_chart: Vitals Thresholds", ":material/mail: Notifications", ":material/lock: Security"])
 
 with tab1:
     st.markdown("### Clinic Information")
@@ -39,7 +39,7 @@ with tab1:
             clinic_phone = st.text_input("Clinic Phone", value=settings_repo.get("clinic_phone") or "")
             st.empty()
 
-        if st.form_submit_button("💾 Save Clinic Info", width="stretch"):
+        if st.form_submit_button(":material/save: Save Clinic Info", width="stretch"):
             settings_repo.set("clinic_name", clinic_name, user["id"])
             settings_repo.set("clinic_email", clinic_email, user["id"])
             settings_repo.set("clinic_phone", clinic_phone, user["id"])
@@ -70,7 +70,7 @@ with tab2:
                                         value=int(settings_repo.get("vitals_threshold_spo2_low") or 90))
             st.empty()
 
-        if st.form_submit_button("💾 Save Thresholds", width="stretch"):
+        if st.form_submit_button(":material/save: Save Thresholds", width="stretch"):
             settings_repo.set("vitals_threshold_bp_systolic_high", str(bp_systolic), user["id"])
             settings_repo.set("vitals_threshold_bp_diastolic_high", str(bp_diastolic), user["id"])
             settings_repo.set("vitals_threshold_hr_high", str(hr_high), user["id"])
@@ -100,7 +100,7 @@ with tab3:
             st.empty()
             st.empty()
 
-        if st.form_submit_button("💾 Save Notification Settings", width="stretch"):
+        if st.form_submit_button(":material/save: Save Notification Settings", width="stretch"):
             settings_repo.set("smtp_host", smtp_host, user["id"])
             settings_repo.set("smtp_port", smtp_port, user["id"])
             settings_repo.set("smtp_user", smtp_user, user["id"])
@@ -120,12 +120,11 @@ with tab4:
             value=int(settings_repo.get("session_timeout_min") or 60),
         )
 
-        if st.form_submit_button("💾 Save Security Settings", width="stretch"):
+        if st.form_submit_button(":material/save: Save Security Settings", width="stretch"):
             settings_repo.set("session_timeout_min", str(session_timeout), user["id"])
             st.success("Security settings updated!")
             st.rerun()
 
-st.markdown("---")
 st.markdown("### All Settings")
 with st.expander("View raw settings table"):
     all_settings = settings_repo.list_all()

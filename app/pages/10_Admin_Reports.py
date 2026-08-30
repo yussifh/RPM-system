@@ -23,7 +23,7 @@ from app.database.repositories.appointment_repository import AppointmentReposito
 from app.database.repositories.audit_log_repository import AuditLogRepository
 from app.utils.custom_css import apply_theme, profile_widget, stat_tiles, notification_bell, page_header
 
-st.set_page_config(page_title="Admin Reports", page_icon="📈", layout="wide")
+st.set_page_config(page_title="Admin Reports", page_icon=":material/analytics:", layout="wide")
 apply_theme()
 
 user = SessionManager.require_role("admin")
@@ -49,11 +49,11 @@ stat_tiles([
     {"label": "Alerts",   "value": sum(stats.get("open_alerts_by_severity", {}).values())},
 ])
 
-st.markdown(page_header("📈", "Admin Reports & Data Export", "System analytics, clinical data, and operational reports"), unsafe_allow_html=True)
+st.markdown(page_header(":material/analytics:", "Admin Reports & Data Export", "System analytics, clinical data, and operational reports"), unsafe_allow_html=True)
 
 analytics_tab, patients_tab, clinical_tab, operations_tab, export_tab = st.tabs([
-    "📊 System Analytics", "👥 Patient Reports", "🏥 Clinical Reports",
-    "⚙️ Operations", "📥 Bulk Export"
+    ":material/bar_chart: System Analytics", ":material/group: Patient Reports", ":material/local_hospital: Clinical reports",
+    ":material/settings: Operations", ":material/inbox: Bulk export"
 ])
 
 
@@ -74,12 +74,10 @@ with analytics_tab:
     st.subheader("System Analytics Overview")
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("👥 Patients", stats["patient_count"])
-    c2.metric("🩺 Doctors", stats["doctor_count"])
-    c3.metric("🛠️ Admins", stats["admin_count"])
-    c4.metric("👤 Total Users", stats["patient_count"] + stats["doctor_count"] + stats["admin_count"])
-
-    st.divider()
+    c1.metric(":material/group: Patients", stats["patient_count"])
+    c2.metric(":material/stethoscope: Doctors", stats["doctor_count"])
+    c3.metric(":material/construction: Admins", stats["admin_count"])
+    c4.metric(":material/person: Total Users", stats["patient_count"] + stats["doctor_count"] + stats["admin_count"])
 
     c1, c2 = st.columns(2)
     with c1:
@@ -110,7 +108,6 @@ with analytics_tab:
             fig2.update_layout(margin=dict(t=10, b=10), height=280, showlegend=False)
             st.plotly_chart(fig2, width="stretch")
 
-    st.divider()
     st.markdown("#### Vitals Collection Summary")
     vitals_stats = vitals_repo.get_summary_stats()
     if vitals_stats and vitals_stats.get("total_readings"):
@@ -130,7 +127,6 @@ with analytics_tab:
     else:
         st.info("No vitals data collected yet.")
 
-    st.divider()
     st.markdown("#### Alert Statistics")
     alert_stats = alert_repo.get_alert_stats()
     if alert_stats and alert_stats.get("total_alerts"):
@@ -178,14 +174,12 @@ with patients_tab:
 
         csv_data = _to_csv(patient_data)
         st.download_button(
-            "📥 Export Patient Directory (CSV)", data=csv_data,
+            ":material/inbox: Export Patient Directory (CSV)", data=csv_data,
             file_name=f"patient_directory_{date.today()}.csv", mime="text/csv",
             use_container_width=False,
         )
     else:
         st.info("No patients registered yet.")
-
-    st.divider()
 
     st.markdown("#### Patient Vitals Overview")
     vitals_data = vitals_repo.get_all_with_patients(limit=200)
@@ -205,7 +199,7 @@ with patients_tab:
 
         csv_data = _to_csv(display_data)
         st.download_button(
-            "📥 Export All Vitals (CSV)", data=csv_data,
+            ":material/inbox: Export All Vitals (CSV)", data=csv_data,
             file_name=f"all_vitals_{date.today()}.csv", mime="text/csv",
         )
     else:
@@ -219,7 +213,7 @@ with clinical_tab:
     st.subheader("Clinical Reports")
 
     risk_tab_inner, meds_tab, alerts_tab_inner, notes_tab = st.tabs([
-        "🤖 AI Risk Assessments", "💊 Medications", "🚨 Alerts", "📝 Clinical Notes"
+        ":material/smart_toy: AI Risk Assessments", ":material/medication: Medications", ":material/warning: Alerts", ":material/edit_note: Clinical notes"
     ])
 
     with risk_tab_inner:
@@ -257,7 +251,7 @@ with clinical_tab:
                 st.plotly_chart(fig, width="stretch")
 
             csv_data = _to_csv(pred_data)
-            st.download_button("📥 Export Risk Assessments (CSV)", data=csv_data,
+            st.download_button(            ":material/inbox: Export Risk Assessments (CSV)", data=csv_data,
                                file_name=f"risk_assessments_{date.today()}.csv", mime="text/csv")
         else:
             st.info("No AI risk assessments yet.")
@@ -280,12 +274,11 @@ with clinical_tab:
             st.dataframe(med_data, width="stretch")
 
             csv_data = _to_csv(med_data)
-            st.download_button("📥 Export Medications (CSV)", data=csv_data,
+            st.download_button(            ":material/inbox: Export Medications (CSV)", data=csv_data,
                                file_name=f"medications_{date.today()}.csv", mime="text/csv")
         else:
             st.info("No medications recorded.")
 
-        st.divider()
         st.markdown("#### Medication Adherence (30-Day)")
         adherence = med_repo.get_adherence_summary()
         if adherence:
@@ -315,7 +308,7 @@ with clinical_tab:
             st.dataframe(alert_data, width="stretch")
 
             csv_data = _to_csv(alert_data)
-            st.download_button("📥 Export Alerts (CSV)", data=csv_data,
+            st.download_button(            ":material/inbox: Export Alerts (CSV)", data=csv_data,
                                file_name=f"alerts_{date.today()}.csv", mime="text/csv")
         else:
             st.info("No alerts generated yet.")
@@ -336,7 +329,7 @@ with clinical_tab:
         if all_notes:
             st.dataframe(all_notes, width="stretch")
             csv_data = _to_csv(all_notes)
-            st.download_button("📥 Export Clinical Notes (CSV)", data=csv_data,
+            st.download_button(            ":material/inbox: Export Clinical Notes (CSV)", data=csv_data,
                                file_name=f"clinical_notes_{date.today()}.csv", mime="text/csv")
         else:
             st.info("No clinical notes yet.")
@@ -367,12 +360,10 @@ with operations_tab:
     if all_appts:
         st.dataframe(all_appts, width="stretch")
         csv_data = _to_csv(all_appts)
-        st.download_button("📥 Export Appointments (CSV)", data=csv_data,
+        st.download_button(        ":material/inbox: Export Appointments (CSV)", data=csv_data,
                            file_name=f"appointments_{date.today()}.csv", mime="text/csv")
     else:
         st.info("No appointments scheduled yet.")
-
-    st.divider()
 
     st.markdown("#### Audit Log")
     audit_logs = admin_service.get_recent_audit_logs(limit=200)
@@ -386,7 +377,7 @@ with operations_tab:
         st.dataframe(audit_data, width="stretch")
 
         csv_data = _to_csv(audit_data)
-        st.download_button("📥 Export Audit Log (CSV)", data=csv_data,
+        st.download_button(        ":material/inbox: Export Audit Log (CSV)", data=csv_data,
                            file_name=f"audit_log_{date.today()}.csv", mime="text/csv")
     else:
         st.info("No audit log entries yet.")
@@ -406,7 +397,7 @@ with export_tab:
         default=["Patient Directory", "All Vitals"],
     )
 
-    if st.button("📥 Generate Export Package", width="stretch"):
+    if st.button(":material/inbox: Generate Export Package", width="stretch"):
         files = {}
 
         if "Patient Directory" in export_options:
@@ -495,10 +486,10 @@ with export_tab:
 
         if files:
             combined = "\n".join(f"--- {name} ---\n{content}" for name, content in files.items())
-            st.success(f"✅ Generated {len(files)} export file(s)")
+            st.success(f":material/check_circle: Generated {len(files)} export file(s)")
             for name, content in files.items():
                 st.download_button(
-                    f"📥 {name}", data=content,
+                    f":material/inbox: {name}", data=content,
                     file_name=f"{date.today()}_{name}", mime="text/csv",
                 )
         else:

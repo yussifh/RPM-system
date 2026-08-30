@@ -21,7 +21,7 @@ from app.database.repositories.patient_repository import PatientRepository
 from app.database.repositories.user_repository import UserRepository
 from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 
-st.set_page_config(page_title="Progress Report", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Progress Report", page_icon=":material/assessment:", layout="wide")
 apply_theme()
 
 user = SessionManager.get_current_user()
@@ -32,7 +32,7 @@ if not user:
 profile_widget(user)
 notification_bell(user)
 
-st.markdown(page_header("📊", "Patient Progress Report", "Generate a comprehensive health progress report as PDF."), unsafe_allow_html=True)
+st.markdown(page_header(":material/assessment:", "Patient Progress Report", "Generate a comprehensive health progress report as PDF."), unsafe_allow_html=True)
 
 # Determine patient_id
 if user["role"] == "patient":
@@ -224,14 +224,14 @@ def generate_progress_pdf(patient_name: str, start_date: date, end_date: date,
     return bytes(pdf.output())
 
 
-if st.button("📥 Generate PDF Report", width="stretch", type="primary"):
+if st.button(":material/inbox: Generate PDF Report", width="stretch", type="primary"):
     pdf_bytes = generate_progress_pdf(
         patient_name, start_date, end_date,
         vitals_history, active_meds, all_meds,
         filtered_appts, adherence
     )
     st.download_button(
-        "📄 Download Progress Report PDF",
+        ":material/description: Download Progress Report PDF",
         data=pdf_bytes,
         file_name=f"progress_report_{patient_name.replace(' ', '_')}_{start_date}_{end_date}.pdf",
         mime="application/pdf",

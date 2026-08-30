@@ -13,10 +13,10 @@ from app.database.repositories.doctor_repository import DoctorRepository
 from app.utils.prescription_generator import generate_prescription_pdf
 from app.database.repositories.appointment_repository import AppointmentRepository
 from app.database.repositories.doctor_schedule_repository import DoctorScheduleRepository
-from app.utils.custom_css import apply_theme, profile_widget, stat_tiles, notification_bell, page_header, vital_card
+from app.utils.custom_css import apply_theme, profile_widget, stat_tiles, notification_bell, page_header, vital_card, theme_tokens
 from app.utils.visualizations import build_blood_pressure_chart, build_single_metric_chart
 
-st.set_page_config(page_title="Doctor Dashboard", page_icon="🩻", layout="wide")
+st.set_page_config(page_title="Doctor Dashboard", page_icon=":material/stethoscope:", layout="wide")
 apply_theme()
 
 user = SessionManager.require_role("doctor")
@@ -28,7 +28,7 @@ doctor_schedule_repo = DoctorScheduleRepository()
 doctor_repo = DoctorRepository()
 doctor_info = doctor_repo.get_by_user_id(user["id"])
 
-_RISK_ICONS = {"low":"🟢","medium":"🟡","high":"🟠","critical":"🔴"}
+_RISK_ICONS = {"low":"[LOW]","medium":"[MEDIUM]","high":"[HIGH]","critical":"[CRITICAL]"}
 _SEV_ORDER  = {"critical":0,"high":1,"medium":2,"low":3}
 
 def _to_time(val):
@@ -42,7 +42,7 @@ def _to_time(val):
     return val
 
 open_alerts   = alert_service.list_open_for_doctor(user["id"])
-alert_badge   = f" 🔴 {len(open_alerts)} alerts" if open_alerts else ""
+alert_badge   = f" :material/warning: {len(open_alerts)} alerts" if open_alerts else ""
 
 # ── Sidebar ──────────────────────────────────────────────────────
 profile_widget(user)
@@ -54,40 +54,40 @@ stat_tiles([
     {"label": "Resolved", "value": 0},
 ])
 
-st.markdown(page_header("🩻", f"Doctor Dashboard{alert_badge}", f"Your patient overview — Dr. {user['full_name']}"), unsafe_allow_html=True)
+st.markdown(page_header(":material/stethoscope:", f"Doctor Dashboard{alert_badge}", f"Your patient overview — Dr. {user['full_name']}"), unsafe_allow_html=True)
 
 alerts_tab, patients_tab, compare_tab, schedule_tab = st.tabs([
-    f"🚨 Alerts ({len(open_alerts)})", "👥 My Patients", "📊 Comparison", "📅 Today's Schedule"
+    f":material/warning: Alerts ({len(open_alerts)})", ":material/group: My Patients", ":material/bar_chart: Comparison", ":material/calendar_month: Today's Schedule"
 ])
 
 # ── Alerts ────────────────────────────────────────────────────────
 with alerts_tab:
     st.subheader("Open alerts")
     if not open_alerts:
-        st.success("✅ No open alerts. All patients are stable.")
+        st.success(":material/check_circle: No open alerts. All patients are stable.")
     else:
         sorted_alerts = sorted(open_alerts, key=lambda a: _SEV_ORDER.get(a["severity"],99))
         for alert in sorted_alerts:
             icon = _RISK_ICONS.get(alert["severity"],"⚪")
             recs = {
-                "critical": "🏥 **Immediate action required.** Contact patient now or escalate to emergency services.",
-                "high":     "📞 **Call patient within 24 hours.** Review medication and schedule urgent appointment.",
-                "medium":   "📋 **Monitor closely.** Schedule follow-up within 1 week.",
-                "low":      "📝 **Note for next appointment.** No urgent action required.",
+                "critical": ":material/local_hospital: **Immediate action required.** Contact patient now or escalate to emergency services.",
+                "high":     ":material/phone: **Call patient within 24 hours.** Review medication and schedule urgent appointment.",
+                "medium":   ":material/clipboard: **Monitor closely.** Schedule follow-up within 1 week.",
+                "low":      ":material/edit_note: **Note for next appointment.** No urgent action required.",
             }
             with st.container(border=True):
                 c1, c2, c3 = st.columns([4,1,1])
                 with c1:
                     st.markdown(f"{icon} **{alert['patient_name']}** — **{alert['severity'].upper()}** risk")
                     st.write(alert["message"])
-                    st.caption(f"⏰ {alert['created_at']}")
+                    st.caption(f":material/schedule: {alert['created_at']}")
                     rec = recs.get(alert["severity"],"")
                     if rec: st.info(rec)
                 with c2:
-                    if st.button("✅ Acknowledge", key=f"ack_{alert['id']}"):
+                    if st.button(":material/check_circle: Acknowledge", key=f"ack_{alert['id']}"):
                         alert_service.acknowledge(alert["id"], user["id"]); st.rerun()
                 with c3:
-                    if st.button("🔒 Resolve", key=f"res_{alert['id']}"):
+                    if st.button(":material/lock: Resolve", key=f"res_{alert['id']}"):
                         alert_service.resolve(alert["id"]); st.rerun()
 
 # ── My Patients ───────────────────────────────────────────────────
@@ -120,7 +120,7 @@ with patients_tab:
         if patient.chronic_conditions:
             st.write("**Chronic conditions:**", ", ".join(c.title() for c in patient.chronic_conditions))
 
-        st.subheader("🤖 Latest AI risk assessment")
+        st.subheader(":material/psychology: Latest AI risk assessment")
         if not overview["latest_predictions"]:
             st.caption("No AI predictions yet.")
         else:
@@ -130,7 +130,7 @@ with patients_tab:
                 col.metric(f"{icon} {pred.disease_type.title()}", pred.risk_level.upper(),
                            f"{float(pred.risk_score):.0%} probability")
 
-        st.subheader("📈 Vitals trends")
+        st.subheader(":material/trending_up: Vitals trends")
         history = overview.get("vitals_history",[])
         if not history:
             st.caption("No vitals submitted yet.")
@@ -150,7 +150,7 @@ with patients_tab:
                         history,"glucose_level","Glucose Level","mg/dL",normal_range=(70,140),color="#B8761D"),
                         width="stretch")
 
-            st.subheader("📋 Vitals table")
+            st.subheader(":material/table_chart: Vitals table")
             st.dataframe([{
                 "Date": r.recorded_at, "Systolic": r.systolic_bp, "Diastolic": r.diastolic_bp,
                 "Heart Rate": r.heart_rate, "Glucose": r.glucose_level,
@@ -163,13 +163,13 @@ with patients_tab:
             for r in history:
                 writer.writerow([r.recorded_at,r.systolic_bp,r.diastolic_bp,r.heart_rate,
                                   r.glucose_level,r.oxygen_saturation,r.temperature_c,r.symptoms])
-            st.download_button("📥 Export Patient Data (CSV)", data=output.getvalue(),
+            st.download_button(":material/inbox: Export Patient Data (CSV)", data=output.getvalue(),
                 file_name=f"patient_{selected_name.replace(' ','_')}_vitals.csv", mime="text/csv")
 
-        st.subheader("📝 Clinical notes")
+        st.subheader(":material/edit_note: Clinical notes")
         with st.form(f"note_form_{selected_id}"):
             new_note = st.text_area("Add a clinical note")
-            if st.form_submit_button("Add Note ✅"):
+            if st.form_submit_button("Add Note :material/check_circle:"):
                 try:
                     doctor_service.add_clinical_note(user["id"], selected_id, new_note)
                     st.success("Note added."); st.rerun()
@@ -183,12 +183,13 @@ with patients_tab:
         else:
             st.caption("No clinical notes yet.")
 
-        st.subheader("💊 Patient Medications")
+        st.subheader(":material/medication: Patient medications")
         active_meds = doctor_service.get_patient_medications(selected_id, active_only=True)
         all_meds    = doctor_service.get_patient_medications(selected_id, active_only=False)
         past_meds   = [m for m in all_meds if not m.is_active]
 
         if active_meds:
+            t = theme_tokens()
             for med in active_meds:
                 with st.container(border=True):
                     c1, c2 = st.columns([6, 1])
@@ -196,17 +197,17 @@ with patients_tab:
                         st.markdown(f"""
                         <div style="display:flex;align-items:center;gap:12px;">
                             <div style="width:36px;height:36px;border-radius:50%;
-                                 background:#0E7A5C;color:white;display:flex;
+                                 background:{t['primary']};color:white;display:flex;
                                  align-items:center;justify-content:center;
-                                 font-size:16px;">💊</div>
+                                 font-size:16px;">:material/medication:</div>
                             <div>
                                 <strong style="font-size:14px;">{med.name}</strong>
                                 <br>
-                                <span style="color:#5F717A;font-size:12px;">
+                                <span style="color:{t['muted']};font-size:12px;">
                                     {med.dosage} — {med.frequency} — {med.route}
                                 </span>
                                 <br>
-                                <span style="color:#5F717A;font-size:11px;">
+                                <span style="color:{t['muted']};font-size:11px;">
                                     Started: {med.start_date}
                                     {f" | Prescribed by: {med.prescribed_by}" if med.prescribed_by else ""}
                                 </span>
@@ -214,35 +215,36 @@ with patients_tab:
                         </div>
                         """, unsafe_allow_html=True)
                         if med.notes:
-                            st.caption(f"📝 {med.notes}")
+                            st.caption(f":material/edit_note: {med.notes}")
                     with c2:
                         st.markdown(f"""
-                        <div style="background:#E7F4EF;border:1px solid #E7F4EF;
+                        <div style="background:{t['tint_primary']};border:1px solid {t['tint_primary']};
                              border-radius:8px;padding:8px 12px;text-align:center;">
                             <span style="font-size:11px;font-weight:600;
-                                  color:#0E7A5C;text-transform:uppercase;">Active</span>
+                                  color:{t['primary']};text-transform:uppercase;">Active</span>
                         </div>
                         """, unsafe_allow_html=True)
         else:
             st.info("No active medications recorded for this patient.")
 
         if past_meds:
-            with st.expander(f"🗂️ Past Medications ({len(past_meds)})"):
+            with st.expander(f":material/folder: Past Medications ({len(past_meds)})"):
                 for med in past_meds:
                     st.markdown(f"~~{med.name}~~ — {med.dosage} "
                                 f"({med.frequency}) | Stopped: {med.end_date or 'Unknown'}")
 
         adherence = doctor_service.get_patient_medication_adherence(selected_id, days=30)
         if active_meds:
-            a_color = "#0E7A5C" if adherence >= 80 else "#B8761D" if adherence >= 50 else "#C73E3A"
+            t = theme_tokens()
+            a_color = t['primary'] if adherence >= 80 else t['amber'] if adherence >= 50 else t['alert']
             st.markdown(f"""
-            <div style="background:white;border:1px solid #DCE5E1;border-radius:10px;
+            <div style="background:{t['surface']};border:1px solid {t['border']};border-radius:10px;
                  padding:14px;display:flex;align-items:center;justify-content:space-between;
                  margin-top:8px;">
                 <div>
                     <div style="font-size:11px;font-weight:600;text-transform:uppercase;
-                         color:#5F717A;letter-spacing:.03em;">30-Day Medication Adherence</div>
-                    <div style="font-size:11px;color:#5F717A;margin-top:2px;">
+                         color:{t['muted']};letter-spacing:.03em;">30-Day Medication Adherence</div>
+                    <div style="font-size:11px;color:{t['muted']};margin-top:2px;">
                         Based on the patient's daily medication logs
                     </div>
                 </div>
@@ -258,12 +260,12 @@ with patients_tab:
             active_med_names = [m.name for m in active_meds]
             interactions = interaction_svc.check_interactions(active_med_names)
             if interactions:
-                st.divider()
-                st.subheader("⚠️ Drug Interaction Warnings")
+                t = theme_tokens()
+                st.subheader(":material/warning: Drug interaction warnings")
                 for interaction in interactions:
-                    severity_color = "#C73E3A" if interaction["severity"] == "severe" else "#B8761D"
+                    severity_color = t['alert'] if interaction["severity"] == "severe" else t['amber']
                     st.markdown(f"""
-                    <div style="background:#FBF3E4;border:1px solid {severity_color};border-radius:8px;
+                    <div style="background:{t['tint_amber']};border:1px solid {severity_color};border-radius:8px;
                          padding:12px 16px;margin-bottom:8px;">
                         <div style="font-weight:600;color:{severity_color};">
                             {interaction['severity'].upper()} Interaction
@@ -271,18 +273,19 @@ with patients_tab:
                         <div style="font-size:13px;margin-top:4px;">
                             <strong>{interaction['drug_a']}</strong> + <strong>{interaction['drug_b']}</strong>
                         </div>
-                        <div style="font-size:12px;color:#5F717A;margin-top:4px;">
+                        <div style="font-size:12px;color:{t['muted']};margin-top:4px;">
                             {interaction['description']}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
 
-        st.subheader("🚨 Emergency Contact Notifications")
+        st.subheader(":material/emergency: Emergency contact notifications")
         emerg_notifs = emerg_service.get_patient_notifications(selected_id)
         if emerg_notifs:
+            t = theme_tokens()
             for notif in emerg_notifs:
-                sev_color = "#C73E3A" if notif.severity == "critical" else "#B8761D"
-                status_icon = "✅" if notif.status == "acknowledged" else "⏳"
+                sev_color = t['alert'] if notif.severity == "critical" else t['amber']
+                status_icon = ":material/check_circle:" if notif.status == "acknowledged" else ":material/schedule:"
                 with st.container(border=True):
                     c1, c2 = st.columns([5, 1])
                     with c1:
@@ -291,32 +294,31 @@ with patients_tab:
                             <div style="width:32px;height:32px;border-radius:50%;
                                  background:{sev_color};color:white;display:flex;
                                  align-items:center;justify-content:center;
-                                 font-size:14px;">🚨</div>
+                                 font-size:14px;">:material/emergency:</div>
                             <div>
                                 <strong style="font-size:13px;color:{sev_color};">
                                     {notif.severity.upper()} — Emergency Contact Notified
                                 </strong>
                                 <br>
-                                <span style="color:#5F717A;font-size:12px;">
+                                <span style="color:{t['muted']};font-size:12px;">
                                     Contact: {notif.emergency_contact}
                                 </span>
                                 <br>
-                                <span style="color:#5F717A;font-size:11px;">
+                                <span style="color:{t['muted']};font-size:11px;">
                                     {notif.created_at}
                                 </span>
                             </div>
                         </div>
                         """, unsafe_allow_html=True)
                         if notif.vital_snapshot:
-                            st.caption(f"📊 Vitals: {notif.vital_snapshot}")
+                            st.caption(f":material/bar_chart: Vitals: {notif.vital_snapshot}")
                     with c2:
                         st.markdown(f"{status_icon} {notif.status.title()}")
         else:
             st.info("No emergency contact notifications for this patient.")
 
         # Prescription PDF generation
-        st.markdown("---")
-        st.subheader("🖨️ Print Prescription")
+        st.subheader(":material/print: Print prescription")
         with st.expander("Generate printable prescription"):
             # Get active medications
             meds = doctor_service.get_patient_medications(selected_id)
@@ -336,7 +338,7 @@ with patients_tab:
                             placeholder="e.g., Follow up in 2 weeks, monitor BP daily...")
                         signature_name = st.text_input("Signature Name", value=user["full_name"] or "")
 
-                    submitted = st.form_submit_button("📄 Generate Prescription PDF", width="stretch")
+                    submitted = st.form_submit_button(":material/description: Generate Prescription PDF", width="stretch")
                     if submitted:
                         if not diagnosis:
                             st.error("Please enter a diagnosis.")
@@ -360,19 +362,19 @@ with patients_tab:
                                     notes=instructions or doctor_notes or "No additional instructions.",
                                 )
                                 st.download_button(
-                                    "⬇️ Download Prescription PDF",
+                                    ":material/inbox: Download Prescription PDF",
                                     data=pdf_bytes,
                                     file_name=f"prescription_{str(patient.full_name or 'patient').replace(' ','_')}.pdf",
                                     mime="application/pdf",
                                     width="stretch",
                                 )
-                                st.success("✅ Prescription PDF generated!")
+                                st.success(":material/check_circle: Prescription PDF generated!")
                             except Exception as e:
                                 st.error(f"Error generating PDF: {e}")
 
 # ── Patient Comparison ────────────────────────────────────────────
 with compare_tab:
-    st.subheader("📊 Patient risk comparison")
+    st.subheader(":material/bar_chart: Patient risk comparison")
     if not patients:
         st.info("No patients assigned.")
     else:
@@ -409,11 +411,11 @@ with compare_tab:
             st.dataframe(df, width="stretch")
             crit = df[df["Risk Level"]=="critical"]
             if not crit.empty:
-                st.error(f"🔴 **{len(crit)} critical risk reading(s) require immediate attention!**")
+                st.error(f":material/warning: **{len(crit)} critical risk reading(s) require immediate attention!**")
 
 # ── Today's Schedule ──────────────────────────────────────────────
 with schedule_tab:
-    st.subheader("📅 Today's Appointment Schedule")
+    st.subheader("Today's appointment schedule")
     today = date.today()
     today_str = today.strftime("%A, %d %B %Y")
     st.caption(f"Viewing schedule for {today_str}")
@@ -423,7 +425,7 @@ with schedule_tab:
     upcoming_appts = [a for a in all_appts if a.appointment_date > today and a.status == "scheduled"]
 
     _STATUS_ICONS = {
-        "scheduled": "🔵", "completed": "✅", "cancelled": "❌", "pending": "⏳"
+        "scheduled": ":material/circle:", "completed": ":material/check_circle:", "cancelled": ":material/cancel:", "pending": ":material/schedule:"
     }
     _SEVERITY_COLORS = {
         "critical": "#C73E3A", "high": "#B8761D", "moderate": "#2A6A9B", "low": "#0E7A5C"
@@ -432,10 +434,11 @@ with schedule_tab:
     if not today_appts:
         st.info("No appointments scheduled for today.")
     else:
+        t = theme_tokens()
         st.markdown(f"**{len(today_appts)} appointment(s) today**")
         for appt in today_appts:
-            sev_color = _SEVERITY_COLORS.get(appt.severity_level, "#5F717A")
-            status_icon = _STATUS_ICONS.get(appt.status, "🔵")
+            sev_color = _SEVERITY_COLORS.get(appt.severity_level, t['muted'])
+            status_icon = _STATUS_ICONS.get(appt.status, ":material/circle:")
             time_str = appt.appointment_time.strftime("%I:%M %p") if hasattr(appt.appointment_time, "strftime") else str(appt.appointment_time)
             with st.container(border=True):
                 c1, c2, c3 = st.columns([4, 2, 1])
@@ -451,28 +454,28 @@ with schedule_tab:
                         <div>
                             <strong style="font-size:14px;">{appt.patient_name}</strong>
                             <br>
-                            <span style="color:#5F717A;font-size:12px;">
+                            <span style="color:{t['muted']};font-size:12px;">
                                 {appt.location} | {appt.severity_level.title()}
                             </span>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
                     if appt.reason:
-                        st.caption(f"📋 {appt.reason}")
+                        st.caption(f":material/clipboard: {appt.reason}")
                 with c2:
                     st.markdown(f"{status_icon} {appt.status.title()}")
                 with c3:
                     if appt.status == "scheduled":
-                        if st.button("✅ Complete", key=f"comp_{appt.id}"):
+                        if st.button(":material/check_circle: Complete", key=f"comp_{appt.id}"):
                             appt_repo.update_status(appt.id, "completed")
                             st.rerun()
 
     if upcoming_appts:
-        st.markdown("---")
-        st.subheader("📆 Upcoming Appointments")
+        t = theme_tokens()
+        st.subheader(":material/event: Upcoming appointments")
         st.caption(f"{len(upcoming_appts)} upcoming appointment(s)")
         for appt in upcoming_appts[:5]:
-            sev_color = _SEVERITY_COLORS.get(appt.severity_level, "#5F717A")
+            sev_color = _SEVERITY_COLORS.get(appt.severity_level, t['muted'])
             time_str = appt.appointment_time.strftime("%I:%M %p") if hasattr(appt.appointment_time, "strftime") else str(appt.appointment_time)
             with st.container(border=True):
                 c1, c2 = st.columns([5, 1])
@@ -483,18 +486,17 @@ with schedule_tab:
                         <div>
                             <strong style="font-size:13px;">{appt.patient_name}</strong>
                             <br>
-                            <span style="color:#5F717A;font-size:12px;">
+                            <span style="color:{t['muted']};font-size:12px;">
                                 {appt.appointment_date} at {time_str} | {appt.location}
                             </span>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
                 with c2:
-                    st.markdown(f"🔵 Scheduled")
+                    st.markdown(f":material/circle: Scheduled")
 
     # Doctor availability schedule management
-    st.divider()
-    st.subheader("🗓️ My Availability Schedule")
+    st.subheader(":material/event: My availability schedule")
     st.caption("Set your available hours for each day of the week")
 
     days_of_week = [0, 1, 2, 3, 4, 5, 6]
@@ -503,7 +505,7 @@ with schedule_tab:
     for i, (day, label) in enumerate(zip(days_of_week, day_labels)):
         schedules = doctor_schedule_repo.get_schedule_for_day(user["id"], day)
         schedule = schedules[0] if schedules else None
-        with st.expander(f"📅 {label}", expanded=(day in [0, 1, 2, 3, 4])):
+        with st.expander(f":material/calendar_month: {label}", expanded=(day in [0, 1, 2, 3, 4])):
             c1, c2, c3 = st.columns([2, 2, 1])
             with c1:
                 is_available = st.checkbox(
@@ -522,23 +524,22 @@ with schedule_tab:
                     key=f"end_{day}"
                 )
             with c3:
-                if is_available and st.button("💾 Save", key=f"save_{day}"):
+                if is_available and st.button(":material/save: Save", key=f"save_{day}"):
                     doctor_schedule_repo.set_schedule(
                         doctor_id=user["id"],
                         day_of_week=day,
                         start_time=start_time,
                         end_time=end_time,
                     )
-                    st.success(f"✅ {label} schedule updated!")
+                    st.success(f":material/check_circle: {label} schedule updated!")
                     st.rerun()
-                if not is_available and schedule and st.button("🗑️ Clear", key=f"clear_{day}"):
+                if not is_available and schedule and st.button(":material/delete: Clear", key=f"clear_{day}"):
                     doctor_schedule_repo.delete_schedule(schedule.id)
-                    st.success(f"✅ {label} cleared!")
+                    st.success(f":material/check_circle: {label} cleared!")
                     st.rerun()
 
     # Auto-refresh section
-    st.markdown("---")
-    auto_refresh = st.checkbox("🔄 Auto-refresh every 60 seconds", key="doctor_auto_refresh")
+    auto_refresh = st.checkbox("Auto-refresh every 60 seconds", key="doctor_auto_refresh")
     if auto_refresh:
         import time
         time.sleep(60)

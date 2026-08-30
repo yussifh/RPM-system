@@ -14,7 +14,7 @@ from app.database.repositories.message_repository import MessageRepository
 from app.database.repositories.user_repository import UserRepository
 from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 
-st.set_page_config(page_title="Chat History", page_icon="💬", layout="wide")
+st.set_page_config(page_title="Chat History", page_icon=":material/chat:", layout="wide")
 apply_theme()
 
 user = SessionManager.get_current_user()
@@ -25,7 +25,7 @@ if not user:
 profile_widget(user)
 notification_bell(user)
 
-st.markdown(page_header("💬", "Chat History", "View your full conversation thread."), unsafe_allow_html=True)
+st.markdown(page_header(":material/chat:", "Chat History", "View your full conversation thread."), unsafe_allow_html=True)
 
 msg_repo = MessageRepository()
 user_repo = UserRepository()
@@ -49,7 +49,6 @@ if user["role"] == "doctor":
             st.info(f"No messages with {other_name} yet.")
         else:
             st.markdown(f"#### Conversation with {other_name} ({len(conversation)} messages)")
-            st.markdown("---")
 
             for msg in conversation:
                 is_sent = msg.sender_id == user["id"]
@@ -58,7 +57,7 @@ if user["role"] == "doctor":
                 align = "right" if is_sent else "left"
                 border = "#0E7A5C" if is_sent else "#DCE5E1"
 
-                read_status = "👁️ Read" if msg.is_read else "📩 Delivered"
+                read_status = ":material/visibility: Read" if msg.is_read else ":material/inbox: Delivered"
                 esc_name = html.escape(sender_name)
                 esc_subject = html.escape(msg.subject or "")
                 esc_body = html.escape(msg.body or "")
@@ -96,7 +95,6 @@ elif user["role"] == "patient":
             st.info(f"No messages with {other_name} yet.")
         else:
             st.markdown(f"#### Conversation with {other_name} ({len(conversation)} messages)")
-            st.markdown("---")
 
             for msg in conversation:
                 is_sent = msg.sender_id == user["id"]

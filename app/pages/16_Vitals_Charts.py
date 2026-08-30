@@ -15,7 +15,7 @@ from app.database.repositories.vitals_repository import VitalsRepository
 from app.database.repositories.patient_repository import PatientRepository
 from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header, vital_card
 
-st.set_page_config(page_title="Vitals Charts", page_icon="📈", layout="wide")
+st.set_page_config(page_title="Vitals Charts", page_icon=":material/show_chart:", layout="wide")
 apply_theme()
 
 user = SessionManager.get_current_user()
@@ -26,7 +26,7 @@ if not user:
 profile_widget(user)
 notification_bell(user)
 
-st.markdown(page_header("📈", "Vitals Trend Charts",
+st.markdown(page_header(":material/show_chart:", "Vitals Trend Charts",
             "Interactive charts showing your health metrics over time."), unsafe_allow_html=True)
 
 vitals_repo = VitalsRepository()
@@ -93,7 +93,7 @@ else:
 
     # ── Blood Pressure Chart ──────────────────────────────────────
     if bp_sys and bp_dia:
-        st.markdown("### 🩺 Blood Pressure Trend")
+        st.markdown("### :material/stethoscope: Blood Pressure Trend")
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=bp_dates, y=bp_sys,
@@ -116,7 +116,7 @@ else:
 
     # ── Heart Rate Chart ──────────────────────────────────────────
     if hr:
-        st.markdown("### ❤️ Heart Rate Trend")
+        st.markdown("### :material/favorite: Heart Rate Trend")
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=hr_dates, y=hr,
@@ -134,7 +134,7 @@ else:
 
     # ── Glucose Chart ─────────────────────────────────────────────
     if glucose:
-        st.markdown("### 🩸 Blood Glucose Trend")
+        st.markdown("### :material/bloodtype: Blood Glucose Trend")
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=glucose_dates, y=glucose,
@@ -153,7 +153,7 @@ else:
 
     # ── SpO2 Chart ────────────────────────────────────────────────
     if spo2:
-        st.markdown("### 💨 Oxygen Saturation (SpO2)")
+        st.markdown("### :material/air: Oxygen Saturation (SpO2)")
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=spo2_dates, y=spo2,
@@ -170,7 +170,7 @@ else:
 
     # ── Weight Chart ──────────────────────────────────────────────
     if weight:
-        st.markdown("### ⚖️ Weight Trend")
+        st.markdown("### :material/monitor_weight: Weight Trend")
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=weight_dates, y=weight,
@@ -184,8 +184,7 @@ else:
         st.plotly_chart(fig, width="stretch")
 
     # ── Stats Summary ─────────────────────────────────────────────
-    st.markdown("---")
-    st.markdown("### 📊 Summary Statistics")
+    st.markdown("### :material/bar_chart: Summary Statistics")
 
     c1, c2, c3, c4 = st.columns(4)
     if bp_sys:

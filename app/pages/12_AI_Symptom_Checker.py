@@ -18,7 +18,7 @@ from app.core.security import SessionManager
 from app.services.symptom_checker_service import SymptomCheckerService
 from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 
-st.set_page_config(page_title="AI Symptom Checker", page_icon="🩺", layout="wide")
+st.set_page_config(page_title="AI Symptom Checker", page_icon=":material/psychology:", layout="wide")
 apply_theme()
 
 user = SessionManager.get_current_user()
@@ -33,7 +33,7 @@ if user["role"] not in ("patient", "doctor"):
 profile_widget(user)
 notification_bell(user)
 
-st.markdown(page_header("🩺", "AI Symptom Checker", "Select your symptoms and get an AI-powered risk assessment for stroke, hypertension, and diabetes."), unsafe_allow_html=True)
+st.markdown(page_header(":material/psychology:", "AI Symptom Checker", "Select your symptoms and get an AI-powered risk assessment for stroke, hypertension, and diabetes."), unsafe_allow_html=True)
 
 symptom_service = SymptomCheckerService()
 all_symptoms = symptom_service.get_all_symptoms()
@@ -46,7 +46,7 @@ col1, col2, col3 = st.columns(3)
 selected_symptoms = []
 
 with col1:
-    st.markdown("#### 🧠 Stroke Symptoms")
+    st.markdown("#### :material/psychology: Stroke Symptoms")
     stroke_symptoms = all_symptoms.get("stroke", [])
     for symptom in stroke_symptoms:
         display_name = SymptomCheckerService.format_symptom_name(symptom)
@@ -54,7 +54,7 @@ with col1:
             selected_symptoms.append(symptom)
 
 with col2:
-    st.markdown("#### ❤️ Hypertension Symptoms")
+    st.markdown("#### :material/favorite: Hypertension Symptoms")
     hypertension_symptoms = all_symptoms.get("hypertension", [])
     for symptom in hypertension_symptoms:
         display_name = SymptomCheckerService.format_symptom_name(symptom)
@@ -62,7 +62,7 @@ with col2:
             selected_symptoms.append(symptom)
 
 with col3:
-    st.markdown("#### 🩸 Diabetes Symptoms")
+    st.markdown("#### :material/bloodtype: Diabetes Symptoms")
     diabetes_symptoms = all_symptoms.get("diabetes", [])
     for symptom in diabetes_symptoms:
         display_name = SymptomCheckerService.format_symptom_name(symptom)
@@ -72,11 +72,11 @@ with col3:
 st.markdown("---")
 
 # ── Assessment Button ────────────────────────────────────────────
-if st.button("🔍 Get AI Assessment", width="stretch", type="primary"):
+if st.button(":material/search: Get AI Assessment", width="stretch", type="primary"):
     if not selected_symptoms:
         st.warning("Please select at least one symptom to get an assessment.")
     else:
-        st.markdown("### 📊 AI Assessment Results")
+        st.markdown("### :material/bar_chart: AI Assessment Results")
         st.info(f"**Symptoms reported:** {', '.join(SymptomCheckerService.format_symptom_name(s) for s in selected_symptoms)}")
 
         # Get patient and vitals for ML boost if patient
@@ -102,19 +102,19 @@ if st.button("🔍 Get AI Assessment", width="stretch", type="primary"):
                 # Risk level colors and icons
                 if result.risk_level == "critical":
                     color = "#C73E3A"
-                    icon = "🚨"
+                    icon = ":material/warning:"
                     bg = "#FBE9E7"
                 elif result.risk_level == "high":
                     color = "#B8761D"
-                    icon = "⚠️"
+                    icon = ":material/warning:"
                     bg = "#FBF3E4"
                 elif result.risk_level == "medium":
                     color = "#2A6A9B"
-                    icon = "📋"
+                    icon = ":material/clipboard:"
                     bg = "#E7F0F7"
                 else:
                     color = "#0E7A5C"
-                    icon = "✅"
+                    icon = ":material/check_circle:"
                     bg = "#E7F4EF"
 
                 confidence_pct = round(result.confidence * 100, 1)
@@ -162,7 +162,7 @@ if st.button("🔍 Get AI Assessment", width="stretch", type="primary"):
             # Disclaimer
             st.markdown("""
             <div style="background:#EFF3F1;border-radius:8px;padding:16px;margin-top:20px;">
-                <strong>⚠️ Medical Disclaimer:</strong> This AI symptom checker is for informational purposes only
+                <strong>:material/warning: Medical Disclaimer:</strong> This AI symptom checker is for informational purposes only
                 and is NOT a substitute for professional medical advice, diagnosis, or treatment.
                 Always seek the advice of your physician or other qualified health provider
                 with any questions you may have regarding a medical condition.

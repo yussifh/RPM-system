@@ -13,7 +13,7 @@ from app.database.repositories.medication_repository import MedicationRepository
 from app.database.repositories.message_repository import MessageRepository
 from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 
-st.set_page_config(page_title="Medication Reminders", page_icon="⏰", layout="wide")
+st.set_page_config(page_title="Medication Reminders", page_icon=":material/alarm:", layout="wide")
 apply_theme()
 
 user = SessionManager.get_current_user()
@@ -28,7 +28,7 @@ if user["role"] != "patient":
 profile_widget(user)
 notification_bell(user)
 
-st.markdown(page_header("⏰", "Medication Reminders", "Set up reminders to never miss your medications."), unsafe_allow_html=True)
+st.markdown(page_header(":material/alarm:", "Medication Reminders", "Set up reminders to never miss your medications."), unsafe_allow_html=True)
 
 med_repo = MedicationRepository()
 msg_repo = MessageRepository()
@@ -82,18 +82,17 @@ else:
                     st.caption("As needed — no scheduled reminders")
             with col2:
                 if times:
-                    st.success("✅ Active")
+                    st.success(":material/check_circle: Active")
 
     # ── Send Reminder Messages ────────────────────────────────────
-    st.markdown("---")
     st.markdown("### Send Reminder Now")
 
     st.info("Send a reminder message to yourself or ask your doctor to send reminders.")
 
-    if st.button("📨 Send Daily Reminder Summary to My Doctor", width="stretch"):
+    if st.button(":material/send: Send Daily Reminder Summary to My Doctor", width="stretch"):
         # Build reminder message
         med_list = "\n".join(
-            f"  💊 {med.name} — {med.dosage} ({med.frequency})" for med in active_meds
+            f"  :material/medication: {med.name} — {med.dosage} ({med.frequency})" for med in active_meds
         )
         times_info = []
         for med in active_meds:
@@ -111,24 +110,23 @@ else:
             msg_repo.send(
                 sender_id=patient_id,
                 receiver_id=patient.assigned_doctor_id,
-                subject=f"⏰ Medication Reminder Request — {user['full_name']}",
+                subject=f":material/alarm: Medication Reminder Request — {user['full_name']}",
                 body=(
-                    f"⏰ MEDICATION REMINDER REQUEST\n"
+                    f":material/alarm: MEDICATION REMINDER REQUEST\n"
                     f"{'=' * 40}\n"
                     f"Patient: {user['full_name']}\n\n"
-                    f"📋 ACTIVE MEDICATIONS:\n{med_list}\n\n"
-                    f"🕐 SCHEDULED TIMES:\n{times_text}\n\n"
+                    f":material/clipboard: ACTIVE MEDICATIONS:\n{med_list}\n\n"
+                    f":material/schedule: SCHEDULED TIMES:\n{times_text}\n\n"
                     f"Please send me reminders at these times.\n"
                     f"{'=' * 40}"
                 ),
             )
-            st.success("✅ Reminder request sent to your doctor!")
+            st.success(":material/check_circle: Reminder request sent to your doctor!")
         else:
             st.warning("No doctor assigned. Please contact support.")
 
     # ── Today's Checklist ─────────────────────────────────────────
-    st.markdown("---")
-    st.markdown("### 📋 Today's Medication Checklist")
+    st.markdown("### :material/clipboard: Today's Medication Checklist")
 
     today_logs = med_repo.get_today_logs(patient_id)
     logged_ids = {log.medication_id for log in today_logs}
@@ -140,21 +138,21 @@ else:
         col1, col2, col3 = st.columns([4, 1, 1])
         with col1:
             if already_logged:
-                status = "✅ Taken" if log_for_today.taken else "❌ Missed"
+                status = ":material/check_circle: Taken" if log_for_today.taken else ":material/cancel: Missed"
                 st.markdown(f"**{med.name}** — {med.dosage} — {status}")
             else:
-                st.markdown(f"**{med.name}** — {med.dosage} — ⏳ Pending")
+                st.markdown(f"**{med.name}** — {med.dosage} — :material/schedule: Pending")
 
         with col2:
             if not already_logged:
-                if st.button("✅ Taken", key=f"rem_taken_{med.id}"):
+                if st.button(":material/check_circle: Taken", key=f"rem_taken_{med.id}"):
                     med_repo.log_taken(med.id, patient_id, taken=True)
                     st.success(f"Logged: {med.name} taken")
                     st.rerun()
 
         with col3:
             if not already_logged:
-                if st.button("❌ Missed", key=f"rem_missed_{med.id}"):
+                if st.button(":material/cancel: Missed", key=f"rem_missed_{med.id}"):
                     med_repo.log_taken(med.id, patient_id, taken=False)
                     st.warning(f"Logged: {med.name} missed")
                     st.rerun()
@@ -163,11 +161,10 @@ else:
     if today_logs:
         taken_count = sum(1 for l in today_logs if l.taken)
         missed_count = sum(1 for l in today_logs if not l.taken)
-        st.divider()
         m1, m2, m3 = st.columns(3)
         m1.metric("Total", len(active_meds))
-        m2.metric("Taken ✅", taken_count)
-        m3.metric("Missed ❌", missed_count)
+        m2.metric("Taken :material/check_circle:", taken_count)
+        m3.metric("Missed :material/cancel:", missed_count)
 
 if st.button("Log Out"):
     SessionManager.logout()

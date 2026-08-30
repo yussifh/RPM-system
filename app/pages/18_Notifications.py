@@ -14,7 +14,7 @@ from app.database.repositories.message_repository import MessageRepository
 from app.database.repositories.appointment_repository import AppointmentRepository
 from app.utils.custom_css import apply_theme, profile_widget, notification_bell, page_header
 
-st.set_page_config(page_title="Notifications", page_icon="🔔", layout="wide")
+st.set_page_config(page_title="Notifications", page_icon=":material/notifications:", layout="wide")
 apply_theme()
 
 user = SessionManager.get_current_user()
@@ -25,7 +25,7 @@ if not user:
 profile_widget(user)
 notification_bell(user)
 
-st.markdown(page_header("🔔", "Notifications", "All your alerts, messages, and updates in one place."), unsafe_allow_html=True)
+st.markdown(page_header(":material/notifications:", "Notifications", "All your alerts, messages, and updates in one place."), unsafe_allow_html=True)
 
 alert_repo = AlertRepository()
 msg_repo = MessageRepository()
@@ -45,7 +45,7 @@ if role == "doctor":
         notifications.append({
             "type": "message",
             "id": m.id,
-            "icon": "💬",
+            "icon": ":material/chat:",
             "title": f"New message from {m.sender_name or 'Unknown'}",
             "detail": m.subject or "No subject",
             "time": m.sent_at,
@@ -60,7 +60,7 @@ elif role == "patient":
         notifications.append({
             "type": "message",
             "id": m.id,
-            "icon": "💬",
+            "icon": ":material/chat:",
             "title": f"New message from {m.sender_name or 'Doctor'}",
             "detail": m.subject or "No subject",
             "time": m.sent_at,
@@ -72,7 +72,7 @@ elif role == "patient":
 if role == "doctor":
     open_alerts = alert_repo.list_open_for_doctor(user_id)
     for a in open_alerts:
-        sev_icon = {"critical": "🚨", "high": "⚠️", "medium": "📋", "low": "✅"}.get(a["severity"], "📋")
+        sev_icon = {"critical": ":material/error:", "high": ":material/warning:", "medium": ":material/clipboard:", "low": ":material/check_circle:"}.get(a["severity"], ":material/clipboard:")
         notifications.append({
             "type": "alert",
             "icon": sev_icon,
@@ -94,7 +94,7 @@ else:
 for a in upcoming:
     notifications.append({
         "type": "appointment",
-        "icon": "📅",
+        "icon": ":material/event:",
         "title": f"Upcoming appointment on {a.appointment_date}",
         "detail": f"With {'Dr. ' + a.doctor_name if role == 'patient' else a.patient_name} at {a.location}",
         "time": datetime.combine(a.appointment_date, a.appointment_time) if a.appointment_date and a.appointment_time else None,
@@ -107,10 +107,9 @@ notifications.sort(key=lambda n: (n["priority"], n["time"] or datetime.min), rev
 
 # ── Display ──────────────────────────────────────────────────────
 if not notifications:
-    st.success("✅ You're all caught up! No new notifications.")
+    st.success(":material/check_circle: You're all caught up! No new notifications.")
 else:
     st.markdown(f"**{len(notifications)} notification(s)**")
-    st.markdown("---")
 
     for n in notifications:
         with st.container(border=True):
@@ -121,7 +120,7 @@ else:
                 st.markdown(f"**{n['title']}**")
                 st.caption(n["detail"])
                 if n["time"]:
-                    st.caption(f"📅 {n['time'].strftime('%d %b %Y, %I:%M %p') if isinstance(n['time'], datetime) else n['time']}")
+                    st.caption(f":material/event: {n['time'].strftime('%d %b %Y, %I:%M %p') if isinstance(n['time'], datetime) else n['time']}")
 
             # Mark as read button for messages
             if n["type"] == "message" and role in ("doctor", "patient"):
@@ -131,8 +130,7 @@ else:
 
     # Mark all as read
     if role in ("doctor", "patient"):
-        st.markdown("---")
-        if st.button("✅ Mark All Messages as Read", width="stretch"):
+        if st.button(":material/check_circle: Mark All Messages as Read", width="stretch"):
             for m in unread:
                 msg_repo.mark_as_read(m.id, user["id"])
             st.success("All messages marked as read.")
