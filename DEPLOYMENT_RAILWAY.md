@@ -156,7 +156,14 @@ What it does (all idempotent-ish, safe to re-run on a fresh DB):
 
 ## Updating the deployed app
 
-Push new commits to `main` → Railway rebuilds and redeploys automatically.
+- **Auto-deploy (recommended):** in the Railway dashboard, open the `rpm-system`
+  service → **Settings** → connect your GitHub repo, then set
+  **Automatically Deploy → All pushes** (this requires installing the Railway
+  GitHub App once). After that, every push to `main` rebuilds and redeploys.
+- **Manual (no dashboard):** push to `main`, then run
+  `railway redeploy --service rpm-system --from-source --yes` to pull the
+  latest commit and redeploy. (CLI-added services don't receive push webhooks
+  until you connect GitHub in the dashboard.)
 
 ---
 
