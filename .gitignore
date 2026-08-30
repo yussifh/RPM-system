@@ -46,3 +46,7 @@ htmlcov/
 
 # --- Streamlit ---
 .streamlit/secrets.toml
+
+# --- Railway IaC (contains live secrets; never commit) ---
+.railway/
+node_modules/
